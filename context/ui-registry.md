@@ -77,3 +77,23 @@ Last updated: 2026-06-17
 
 **Pattern notes:**
 These are temporary protected-route placeholders for auth verification only. Profile and Find Jobs include a secondary sign-out form button (`rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium`) so authenticated placeholder pages can clear the SSR session.
+
+### Auth Utility Components
+
+File: components/auth/SignOutButton.tsx, components/auth/PostHogIdentify.tsx
+Last updated: 2026-06-17
+
+| Property         | Class                                                                                 |
+| ---------------- | ------------------------------------------------------------------------------------- |
+| Background       | Button `bg-surface`; `PostHogIdentify` renders no visible UI |
+| Border           | Button `border border-border` |
+| Border radius    | Button `rounded-md` |
+| Text - primary   | Button `text-sm font-medium leading-5 text-text-primary` |
+| Text - secondary | None |
+| Spacing          | Form `mt-6`; button `min-h-10 px-4 py-2` |
+| Hover state      | Button `hover:bg-surface-secondary`; focus `focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent` |
+| Shadow           | None |
+| Accent usage     | Focus outline `outline-accent` |
+
+**Pattern notes:**
+Reusable auth utility components keep analytics behavior out of placeholder pages while preserving the exact secondary-button visual pattern already used by protected placeholders. `SignOutButton` resets PostHog before submitting the existing server action. `PostHogIdentify` is intentionally invisible and should remain styling-free.

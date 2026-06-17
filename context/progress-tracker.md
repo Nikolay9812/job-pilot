@@ -7,8 +7,8 @@ Update this file after every completed feature. Any AI agent reading this should
 ## Current Status
 
 **Phase:** Phase 1 - Foundation
-**Last completed:** 02 Auth
-**Next:** 03 PostHog Initialization
+**Last completed:** 03 PostHog Initialization
+**Next:** 04 Database Schema
 
 ---
 
@@ -18,7 +18,7 @@ Update this file after every completed feature. Any AI agent reading this should
 
 - [x] 01 Homepage
 - [x] 02 Auth
-- [ ] 03 PostHog Initialization
+- [x] 03 PostHog Initialization
 - [ ] 04 Database Schema
 
 ### Phase 2 — Profile Page
@@ -58,6 +58,8 @@ _Add decisions here as they are made during implementation._
 - Auth uses InsForge's current SSR package path: `@insforge/sdk/ssr`, not the older `@insforge/ssr` examples still present in some local context docs.
 - OAuth is server-owned: `actions/auth.ts` starts Google/GitHub sign-in with `skipBrowserRedirect`, `app/api/auth/callback/route.ts` exchanges `insforge_code`, and `/api/auth/refresh` handles session refresh.
 - Next.js 16 route protection lives in `proxy.ts`; protected paths are `/dashboard`, `/profile`, and `/find-jobs`.
+- PostHog browser initialization stays in a client provider under the server root layout. Server event capture uses `posthog-node` with `flushAt: 1`, `flushInterval: 0`, and `shutdown()` in the same helper.
+- Current auth pages identify authenticated users from protected server pages and reset PostHog through a reusable client sign-out button before the existing server action runs.
 
 ---
 
@@ -71,3 +73,4 @@ _Add notes here as the build progresses — workarounds, patterns, anything that
 - Feature 02 Auth layout fix: Adjusted `/login` to use the shared navbar, `max-w-7xl`, standard `lg:grid-cols-2`, and fixed responsive text sizes so the split auth card matches the reference instead of stretching full-width. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts.
 - Feature 02 Auth component extraction: Moved the split login card UI and OAuth forms from `app/(auth)/login/page.tsx` into `components/auth/LoginCard.tsx`; the route now only handles search params, auth error mapping, navbar, and page shell. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts.
 - Feature 02 Auth review fixes: Corrected the `LoginCard` prop contract, restored OAuth forms to the `startOAuth` server action, moved page-shell layout back to `/login`, removed viewport-clamp and negative-tracking typography from the auth hero, and refreshed the UI registry to match the real component. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts.
+- Feature 03 PostHog Initialization: Added typed browser/server PostHog helpers, installed `posthog-node`, routed root layout analytics through the existing client provider, identified authenticated users from protected pages, and reset analytics on sign-out. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts. Note: `npm install` reported 2 moderate advisories; no audit fix was applied because it is outside this feature scope.
