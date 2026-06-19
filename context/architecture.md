@@ -218,6 +218,7 @@ URL saved to profiles table
 | portfolio_url       | text        |                                              |
 | work_authorization  | text        | citizen / permanent_resident / visa_required |
 | resume_pdf_url      | text        | InsForge Storage URL of current resume       |
+| resume_pdf_key      | text        | InsForge Storage object key of current resume |
 | is_complete         | boolean     | True when all required fields filled         |
 | created_at          | timestamptz |                                              |
 | updated_at          | timestamptz |                                              |
@@ -234,6 +235,8 @@ URL saved to profiles table
 | jobs_found         | integer     | Total jobs discovered        |
 | started_at         | timestamptz |                              |
 | completed_at       | timestamptz |                              |
+| created_at         | timestamptz |                              |
+| updated_at         | timestamptz |                              |
 
 ### `jobs`
 
@@ -262,6 +265,8 @@ URL saved to profiles table
 | missing_skills     | text[]      | Skills user lacks                              |
 | company_research   | jsonb       | Company dossier from research agent            |
 | found_at           | timestamptz |                                                |
+| created_at         | timestamptz |                                                |
+| updated_at         | timestamptz |                                                |
 
 ### `agent_logs`
 
@@ -281,7 +286,7 @@ URL saved to profiles table
 
 | Bucket  | Path                         | Contents                  |
 | ------- | ---------------------------- | ------------------------- |
-| resumes | resumes/{user_id}/resume.pdf | Current active resume PDF |
+| resumes | {user_id}/resume.pdf | Current active resume PDF |
 
 Access: authenticated users only, own files only.
 

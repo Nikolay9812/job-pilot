@@ -135,22 +135,18 @@ const { data, error } = await insforge.storage
     upsert: true, // overwrites existing file
   });
 
-// Get public URL
-const { data } = insforge.storage
-  .from("resumes")
-  .getPublicUrl(`${userId}/resume.pdf`);
-
-const url = data.publicUrl;
+const resumePdfUrl = data.url;
+const resumePdfKey = data.key;
 ```
 
 **Storage paths:**
 
-- Base resume: `resumes/{user_id}/resume.pdf`
+- Base resume: `{user_id}/resume.pdf` in the `resumes` bucket
 
 **Rules:**
 
 - Always use `upsert: true` for base resume uploads — overwrites existing file
-- Always save the public URL back to the DB after upload
+- Always save both the returned URL and object key back to the DB after upload
 - Never write files to disk — always upload buffer directly to storage
 
 ---

@@ -97,3 +97,10 @@ Last updated: 2026-06-17
 
 **Pattern notes:**
 Reusable auth utility components keep analytics behavior out of placeholder pages while preserving the exact secondary-button visual pattern already used by protected placeholders. `SignOutButton` resets PostHog before submitting the existing server action. `PostHogIdentify` is intentionally invisible and should remain styling-free.
+
+### Database Schema
+
+File: migrations/20260618032112_create-jobpilot-schema.sql
+Last updated: 2026-06-18
+
+No visible UI components were added for Feature 04. The database schema feature creates backend persistence only, so existing visual patterns remain unchanged.

@@ -7,8 +7,8 @@ Update this file after every completed feature. Any AI agent reading this should
 ## Current Status
 
 **Phase:** Phase 1 - Foundation
-**Last completed:** 03 PostHog Initialization
-**Next:** 04 Database Schema
+**Last completed:** 04 Database Schema
+**Next:** 05 Profile Page - Full UI
 
 ---
 
@@ -19,7 +19,7 @@ Update this file after every completed feature. Any AI agent reading this should
 - [x] 01 Homepage
 - [x] 02 Auth
 - [x] 03 PostHog Initialization
-- [ ] 04 Database Schema
+- [x] 04 Database Schema
 
 ### Phase 2 — Profile Page
 
@@ -60,6 +60,9 @@ _Add decisions here as they are made during implementation._
 - Next.js 16 route protection lives in `proxy.ts`; protected paths are `/dashboard`, `/profile`, and `/find-jobs`.
 - PostHog browser initialization stays in a client provider under the server root layout. Server event capture uses `posthog-node` with `flushAt: 1`, `flushInterval: 0`, and `shutdown()` in the same helper.
 - Current auth pages identify authenticated users from protected server pages and reset PostHog through a reusable client sign-out button before the existing server action runs.
+- Feature 04 schema is managed by InsForge migration `migrations/20260618032112_create-jobpilot-schema.sql`.
+- Profile resume metadata stores both `resume_pdf_url` and `resume_pdf_key`; resume storage object keys use `{user_id}/resume.pdf` inside the private `resumes` bucket.
+- Feature 04 added owner-only RLS for `profiles`, `agent_runs`, `jobs`, and `agent_logs`; `agent_logs` is append-only for authenticated users.
 
 ---
 
@@ -74,3 +77,4 @@ _Add notes here as the build progresses — workarounds, patterns, anything that
 - Feature 02 Auth component extraction: Moved the split login card UI and OAuth forms from `app/(auth)/login/page.tsx` into `components/auth/LoginCard.tsx`; the route now only handles search params, auth error mapping, navbar, and page shell. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts.
 - Feature 02 Auth review fixes: Corrected the `LoginCard` prop contract, restored OAuth forms to the `startOAuth` server action, moved page-shell layout back to `/login`, removed viewport-clamp and negative-tracking typography from the auth hero, and refreshed the UI registry to match the real component. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts.
 - Feature 03 PostHog Initialization: Added typed browser/server PostHog helpers, installed `posthog-node`, routed root layout analytics through the existing client provider, identified authenticated users from protected pages, and reset analytics on sign-out. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts. Note: `npm install` reported 2 moderate advisories; no audit fix was applied because it is outside this feature scope.
+- Feature 04 Database Schema: Created and applied the initial InsForge schema migration for `profiles`, `agent_runs`, `jobs`, and `agent_logs` with constraints, indexes, updated-at triggers, immutable identity guards, grants, and owner-only RLS policies. Created the private `resumes` storage bucket. Verification: InsForge CLI confirmed all four tables exist, RLS is enabled on all four, 11 owner policies exist, and the `resumes` bucket is private.
