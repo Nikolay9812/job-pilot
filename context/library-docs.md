@@ -553,7 +553,8 @@ export function initPostHog() {
   if (typeof window !== "undefined") {
     posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
       api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST!,
-      capture_pageview: false, // manual pageview tracking
+      capture_pageview: false, // pageviews are outside current event scope
+      capture_pageleave: false,
     });
   }
 }
@@ -594,8 +595,9 @@ await posthog.shutdown(); // required — ensures event is sent
 - Always call `await posthog.shutdown()` in server-side functions — events are lost without it
 - `flushAt: 1` and `flushInterval: 0` always set on server client
 - Event names must match exactly the list in `code-standards.md`
+- Do not capture `$pageview` or `$pageleave`; dashboard charts use only the four custom events in `code-standards.md`
 - Always include `userId` as a property on every server-side event
-- Call `posthog.identify(userId)` after login on client side
+- Call `initPostHog()` before `posthog.identify(userId)` on client side
 - Call `posthog.reset()` on logout on client side
 
 ---

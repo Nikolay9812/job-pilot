@@ -6,45 +6,45 @@ Update this file after every completed feature. Any AI agent reading this should
 
 ## Current Status
 
-**Phase:** Phase 1 - Foundation
-**Last completed:** 04 Database Schema
-**Next:** 05 Profile Page - Full UI
+**Phase:** Phase 2 - Profile Page
+**Last completed:** 05 Profile Page - Full UI
+**Next:** 06 Profile Save Logic
 
 ---
 
 ## Progress
 
-### Phase 1 — Foundation
+### Phase 1 - Foundation
 
 - [x] 01 Homepage
 - [x] 02 Auth
 - [x] 03 PostHog Initialization
 - [x] 04 Database Schema
 
-### Phase 2 — Profile Page
+### Phase 2 - Profile Page
 
-- [ ] 05 Profile Page — Full UI
+- [x] 05 Profile Page - Full UI
 - [ ] 06 Profile Save Logic
 - [ ] 07 AI Profile Extraction from Resume
 - [ ] 08 Resume PDF Generation from Profile
 
-### Phase 3 — Find Jobs Page
+### Phase 3 - Find Jobs Page
 
-- [ ] 09 Find Jobs Page — Full UI
+- [ ] 09 Find Jobs Page - Full UI
 - [ ] 10 Adzuna Job Discovery
 - [ ] 11 Filter + Sort + Pagination
 
-### Phase 4 — Job Details Page
+### Phase 4 - Job Details Page
 
-- [ ] 12 Job Details Page — Full UI
+- [ ] 12 Job Details Page - Full UI
 - [ ] 13 Company Research Agent
 
-### Phase 5 — Dashboard
+### Phase 5 - Dashboard
 
-- [ ] 14 Dashboard Page — Full UI
-- [ ] 15 Stats Bar — Real Data
-- [ ] 16 Recent Activity — Real Data
-- [ ] 17 Analytics Charts — PostHog Data
+- [ ] 14 Dashboard Page - Full UI
+- [ ] 15 Stats Bar - Real Data
+- [ ] 16 Recent Activity - Real Data
+- [ ] 17 Analytics Charts - PostHog Data
 
 ---
 
@@ -63,12 +63,14 @@ _Add decisions here as they are made during implementation._
 - Feature 04 schema is managed by InsForge migration `migrations/20260618032112_create-jobpilot-schema.sql`.
 - Profile resume metadata stores both `resume_pdf_url` and `resume_pdf_key`; resume storage object keys use `{user_id}/resume.pdf` inside the private `resumes` bucket.
 - Feature 04 added owner-only RLS for `profiles`, `agent_runs`, `jobs`, and `agent_logs`; `agent_logs` is append-only for authenticated users.
+- PostHog follow-ups closed during Feature 05: pageview/pageleave capture is disabled because the project only allows the four explicit custom events; `identifyPostHogUser()` now initializes PostHog before calling `identify()` to avoid provider timing races.
+- Feature 05 uses mock UI only. Save, upload, extraction, and resume generation buttons are inert until Features 06-08.
 
 ---
 
 ## Notes
 
-_Add notes here as the build progresses — workarounds, patterns, anything that differs from the context files._
+_Add notes here as the build progresses - workarounds, patterns, anything that differs from the context files._
 
 - Feature 01 Homepage: `/` now matches `context/designs/landing-page.png` with top navigation, pastel hero, dashboard preview, split feature sections, testimonial, CTA band, and footer. Components live under `components/layout` and `components/homepage`. Verification note: lint/build could not be run in this shell because `node`, `npm`, `npm.cmd`, and `git` are not available on PATH.
 - Feature 02 Auth: Added `@insforge/sdk`, corrected local InsForge env variable names in `.env.local`, created browser/server SDK helpers, OAuth start action, callback route, refresh route, protected-route proxy, `/login`, and lightweight protected placeholders for `/dashboard`, `/profile`, and `/find-jobs`. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts.
@@ -78,3 +80,4 @@ _Add notes here as the build progresses — workarounds, patterns, anything that
 - Feature 02 Auth review fixes: Corrected the `LoginCard` prop contract, restored OAuth forms to the `startOAuth` server action, moved page-shell layout back to `/login`, removed viewport-clamp and negative-tracking typography from the auth hero, and refreshed the UI registry to match the real component. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts.
 - Feature 03 PostHog Initialization: Added typed browser/server PostHog helpers, installed `posthog-node`, routed root layout analytics through the existing client provider, identified authenticated users from protected pages, and reset analytics on sign-out. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts. Note: `npm install` reported 2 moderate advisories; no audit fix was applied because it is outside this feature scope.
 - Feature 04 Database Schema: Created and applied the initial InsForge schema migration for `profiles`, `agent_runs`, `jobs`, and `agent_logs` with constraints, indexes, updated-at triggers, immutable identity guards, grants, and owner-only RLS policies. Created the private `resumes` storage bucket. Verification: InsForge CLI confirmed all four tables exist, RLS is enabled on all four, 11 owner policies exist, and the `resumes` bucket is private.
+- Feature 05 Profile Page - Full UI: Replaced the `/profile` placeholder with the complete mock profile UI from `context/designs/profile.png`: app navbar active state, attention banner, resume upload/generate card, profile information form, work experience card, education, job preferences, and save button. Added profile components under `components/profile` and token CSS helpers in `app/globals.css`. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts.

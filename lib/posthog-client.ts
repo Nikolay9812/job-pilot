@@ -40,7 +40,7 @@ export function initPostHog(): void {
   posthog.init(posthogKey, {
     api_host: posthogHost,
     capture_pageview: false,
-    capture_pageleave: true,
+    capture_pageleave: false,
   });
 }
 
@@ -49,6 +49,7 @@ export function identifyPostHogUser(userId: string): void {
     return;
   }
 
+  initPostHog();
   posthog.identify(userId);
 }
 

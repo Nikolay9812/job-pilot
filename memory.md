@@ -1,68 +1,82 @@
-# Memory - Feature 04 Database Schema
+# Memory - Feature 05 Profile Page Full UI
 
-Last updated: 2026-06-19 05:12 Europe/Berlin
+Last updated: 2026-06-19 17:54 Europe/Berlin
 
 ## What was built
 
-- Feature 04 Database Schema was architected, implemented, applied to InsForge, verified, and documented.
-- Created and applied `migrations/20260618032112_create-jobpilot-schema.sql`.
-- Added `profiles`, `agent_runs`, `jobs`, and `agent_logs` tables with constraints, indexes, `updated_at` triggers, immutable identity guard triggers, grants, and owner-only RLS policies.
-- Created the private InsForge Storage bucket `resumes`.
-- Updated `context/architecture.md` to include `resume_pdf_key`, `updated_at` fields for mutable tables, and the final resume object path.
-- Updated `context/library-docs.md` so resume uploads persist both returned URL and object key.
-- Updated `context/progress-tracker.md` to mark Feature 04 complete and set Feature 05 Profile Page - Full UI as next.
-- Updated `context/ui-registry.md` with a no-visible-UI note for the database schema feature.
+- Feature 05 Profile Page - Full UI was implemented, verified, imprinted, and documented.
+- Replaced the `/profile` placeholder in `app/profile/page.tsx` with the full mock profile screen matching `context/designs/profile.png`.
+- Added profile UI components:
+  - `components/profile/ProfileAttentionBanner.tsx`
+  - `components/profile/ResumeSection.tsx`
+  - `components/profile/ProfileInformationForm.tsx`
+- Extended `components/layout/Navbar.tsx` with an app variant and active route state while preserving the existing marketing navbar default.
+- Added token-based profile visual helpers in `app/globals.css` for the completion ring and dashed upload zone.
+- Closed the previous PostHog follow-ups in code:
+  - Removed manual `$pageview` capture from `app/providers/posthog-provider.tsx`.
+  - Disabled PostHog pageleave capture in `lib/posthog-client.ts`.
+  - Updated `identifyPostHogUser()` to initialize PostHog before calling `identify()`.
+- Updated `context/library-docs.md` with the resolved PostHog rules.
+- Updated `context/progress-tracker.md` to mark Feature 05 complete and set Feature 06 Profile Save Logic as next.
+- Updated `context/ui-registry.md` with the Profile Page Full UI imprint.
 
 ## Decisions made
 
-- Feature 04 uses one InsForge migration for all app-owned public schema objects.
-- Resume storage uses object keys shaped as `{user_id}/resume.pdf` inside the `resumes` bucket.
-- `profiles.resume_pdf_url` and `profiles.resume_pdf_key` are both persisted for future resume upload/generation work.
-- `work_experience`, `education`, and `company_research` remain `jsonb` for now because the product docs explicitly call for those fields and the data is bounded or whole-object oriented.
-- RLS is owner-only on all four tables using `auth.uid()`.
-- `agent_logs` is append-only for authenticated users: owners can select and insert, but not update or delete.
-- `profiles`, `agent_runs`, and `jobs` allow owner updates, with immutable identity fields protected by trigger guards.
+- Feature 05 remains mock UI only. Save, upload, extraction, and resume generation controls are intentionally inert until Features 06-08.
+- The protected app navbar is implemented as `Navbar` with `variant="app"` and `activeHref`, not as a duplicate profile-only header.
+- PostHog pageview and pageleave capture are out of scope because project standards allow only four explicit custom events.
+- `identifyPostHogUser()` defensively calls `initPostHog()` to avoid provider initialization timing races.
+- `context/progress-tracker.md` was normalized to plain ASCII while preserving the existing history, because encoded dash characters made targeted patches brittle.
 
 ## Problems solved
 
-- The shell did not have `npx`, `npm`, `node`, or `git` on PATH. Node tooling worked by prepending `C:\Program Files\nodejs` and calling the Windows shims directly.
-- InsForge CLI was confirmed linked to the expected `JSM_JobPilot` project without saving any credentials to memory.
-- Remote InsForge state initially had no migrations and no storage buckets.
-- The migration applied cleanly.
-- Storage bucket creation succeeded as private.
-- Verification confirmed all four tables exist, RLS is enabled on all four, 11 owner policies exist, key schema additions are present, and the `resumes` bucket is private.
-- `npm run lint` passes.
-- `npm run build` passes when network access is allowed for Google Fonts.
-- `git status` required `git -c safe.directory=C:/Users/Nikolay/vs-projects/job-pilot ...` because the sandbox user differs from the repo owner. It also emitted warnings about unreadable global git ignore config, but repo status still worked.
+- The existing profile page was only a protected placeholder; it now matches the supplied profile design with attention banner, resume card, full profile form, work experience, education, job preferences, and save button.
+- Lint initially failed on unescaped apostrophes in degree options; fixed with JSX-safe entities.
+- `npm.cmd run build` initially failed because Google Fonts could not be fetched in the restricted sandbox. It passed after allowing network access for the build.
+- `/imprint` was run after the UI build; the existing Profile Page Full UI registry entry already matched the built components, so no extra registry patch was needed during the explicit imprint call.
+- A source check found no hardcoded hex values or raw Tailwind color classes in the new profile components.
 
 ## Current state
 
-- Phase 1 Foundation status:
-  - `01 Homepage` complete.
-  - `02 Auth` complete.
-  - `03 PostHog Initialization` complete, with two known follow-up review questions still unresolved.
-  - `04 Database Schema` complete.
-- Next planned feature is `05 Profile Page - Full UI`.
+- Phase 1 Foundation is complete:
+  - `01 Homepage`
+  - `02 Auth`
+  - `03 PostHog Initialization`
+  - `04 Database Schema`
+- Phase 2 Profile Page status:
+  - `05 Profile Page - Full UI` complete.
+  - `06 Profile Save Logic` is next.
+  - `07 AI Profile Extraction from Resume` not started.
+  - `08 Resume PDF Generation from Profile` not started.
+- Verification:
+  - `npm.cmd run lint` passes.
+  - `npm.cmd run build` passes when network access is allowed for Google Fonts.
 - Expected changed files from this session:
-  - `migrations/20260618032112_create-jobpilot-schema.sql`
-  - `context/architecture.md`
+  - `app/globals.css`
+  - `app/profile/page.tsx`
+  - `app/providers/posthog-provider.tsx`
+  - `components/layout/Navbar.tsx`
+  - `components/profile/ProfileAttentionBanner.tsx`
+  - `components/profile/ResumeSection.tsx`
+  - `components/profile/ProfileInformationForm.tsx`
   - `context/library-docs.md`
   - `context/progress-tracker.md`
   - `context/ui-registry.md`
+  - `lib/posthog-client.ts`
   - `memory.md`
-- Known PostHog follow-ups from the previous session remain:
-  - `PostHogIdentify` may call `identify()` before provider initialization finishes.
-  - Manual `$pageview` capture still needs a decision because `context/code-standards.md` says only four custom events are allowed.
+- Known environment notes:
+  - Node tooling works via `C:\Program Files\nodejs\npm.cmd`.
+  - `git status` may require `git -c safe.directory=C:/Users/Nikolay/vs-projects/job-pilot ...` because the sandbox user differs from the repo owner.
+  - Git may warn about unreadable global ignore config, but repo status still works.
 
 ## Next session starts with
 
 - Run `/remember restore`.
 - Read `AGENTS.md` and the required context files in order before implementation.
-- Start Feature 05 Profile Page - Full UI from `context/build-plan.md`.
-- Before building UI, use the relevant UI/Tailwind skills if styling work is involved and follow `context/ui-registry.md`.
-- Consider resolving the two PostHog follow-ups before or alongside the next feature if they become relevant.
+- Start Feature 06 Profile Save Logic from `context/build-plan.md`.
+- Use the InsForge skill before implementing profile persistence, because Feature 06 writes to the `profiles` table and uploads resume PDFs to InsForge Storage.
+- Wire the existing mock form to real profile data and a server action in `actions/profile.ts`, then revalidate `/profile`.
 
 ## Open questions
 
-- Should manual `$pageview` tracking remain part of the PostHog setup even though current code standards restrict project events to four custom events?
-- Should PostHog identify be moved into a provider/auth observer path so it is guaranteed to happen after initialization?
+- None currently known.
