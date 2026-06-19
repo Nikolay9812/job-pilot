@@ -130,10 +130,7 @@ const { error } = await insforge
 // Upload file
 const { data, error } = await insforge.storage
   .from("resumes")
-  .upload(`${userId}/resume.pdf`, fileBuffer, {
-    contentType: "application/pdf",
-    upsert: true, // overwrites existing file
-  });
+  .upload(`${userId}/resume.pdf`, file);
 
 const resumePdfUrl = data.url;
 const resumePdfKey = data.key;
@@ -145,9 +142,9 @@ const resumePdfKey = data.key;
 
 **Rules:**
 
-- Always use `upsert: true` for base resume uploads — overwrites existing file
+- The installed `@insforge/sdk` storage `upload(path, file)` does not accept an `upsert` option. For the one-active-resume flow, remove the existing `{user_id}/resume.pdf` object first, then upload the replacement to the same key.
 - Always save both the returned URL and object key back to the DB after upload
-- Never write files to disk — always upload buffer directly to storage
+- Never write files to disk — upload the `File`/`Blob` directly to storage
 
 ---
 

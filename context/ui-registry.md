@@ -105,7 +105,7 @@ Last updated: 2026-06-18
 
 No visible UI components were added for Feature 04. The database schema feature creates backend persistence only, so existing visual patterns remain unchanged.
 
-### Profile Page Full UI
+### Profile Page Full UI + Save Logic
 
 File: app/profile/page.tsx, components/layout/Navbar.tsx, components/profile/*
 Last updated: 2026-06-19
@@ -113,14 +113,14 @@ Last updated: 2026-06-19
 | Property         | Class                                                                                 |
 | ---------------- | ------------------------------------------------------------------------------------- |
 | Background       | Page `bg-background`; cards `bg-surface`; muted work card `bg-surface-secondary`; tags `bg-surface-muted`; upload zone uses `profile-upload-zone` token CSS |
-| Border           | Cards `border border-border`; attention banner `border border-error`; app navbar `border-b border-border`; inputs `border border-border`; section dividers `border-t border-border` |
+| Border           | Cards `border border-border`; attention banner `border border-error` or `border-success`; app navbar `border-b border-border`; inputs `border border-border`; section dividers `border-t border-border`; save message `border-success` / `border-error` |
 | Border radius    | Cards `rounded-xl`; work item `rounded-lg`; inputs/buttons `rounded-md`; completion ring `rounded-full`; missing badges `rounded-sm` |
 | Text - primary   | Card headings `text-2xl font-semibold leading-8 text-text-primary`; section headings `text-lg font-semibold leading-7 text-text-primary`; body emphasis `text-sm font-semibold leading-5 text-text-primary` |
-| Text - secondary | Help copy `text-sm font-medium leading-5 text-text-secondary`; labels `text-xs font-semibold uppercase leading-4 text-text-secondary`; placeholders `placeholder:text-text-muted` |
+| Text - secondary | Help copy `text-sm font-medium leading-5 text-text-secondary`; labels `text-xs font-semibold uppercase leading-4 text-text-secondary`; placeholders `placeholder:text-text-muted`; disabled add-role text `disabled:text-text-muted` |
 | Spacing          | Page wrapper `max-w-[980px] px-4 py-8`; page stack `gap-8`; cards `p-8`; form sections `mt-10 pt-10`; field grid `gap-6`; inputs `px-4 py-2` |
-| Hover state      | Secondary controls `hover:bg-surface-secondary` / `hover:bg-surface-tertiary`; primary controls `hover:bg-accent-dark`; app nav inactive `hover:text-text-primary`; focus `focus-visible:outline-accent` and input `focus:ring-1 focus:ring-accent` |
+| Hover state      | Secondary controls `hover:bg-surface-secondary` / `hover:bg-surface-tertiary`; primary controls `hover:bg-accent-dark`; app nav inactive `hover:text-text-primary`; focus `focus-visible:outline-accent` and input `focus:ring-1 focus:ring-accent`; submit disabled `disabled:cursor-not-allowed disabled:bg-accent-light disabled:text-accent` |
 | Shadow           | Cards/buttons/icon well use `shadow-card`; inputs use `shadow-sm` |
-| Accent usage     | Primary buttons `bg-accent text-accent-foreground`; active app nav `border-accent text-accent`; upload icon `text-accent`; add role `text-accent`; checkbox `accent-accent`; completion ring uses token CSS with `--color-error` |
+| Accent usage     | Primary buttons `bg-accent text-accent-foreground`; active app nav `border-accent text-accent`; upload icon/current resume link/add role `text-accent`; checkbox `accent-accent`; completion ring uses token CSS with `--color-error` or `--color-success` |
 
 **Pattern notes:**
-The protected app navbar is now an explicit `variant="app"` on the shared `Navbar`, with active route color and underline only on app pages. The profile page follows the supplied `context/designs/profile.png`: centered 980px content, stacked white cards, mock form values only, token CSS for the completion ring and dashed upload zone, and no save/upload/generate behavior until later profile features.
+The protected app navbar is an explicit `variant="app"` on the shared `Navbar`, with active route color and underline only on app pages. Feature 06 keeps the centered 980px profile layout and white card stack from `context/designs/profile.png`, but the form now pre-fills from InsForge, uses client state for tags and up to three work roles, submits through `actions/profile.ts`, and shows token-colored save feedback. The resume selector is visually in the resume card but associated to the profile form through the HTML `form` attribute. AI extraction and generated resume behavior remain deferred to later profile features.

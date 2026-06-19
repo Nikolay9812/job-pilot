@@ -7,8 +7,8 @@ Update this file after every completed feature. Any AI agent reading this should
 ## Current Status
 
 **Phase:** Phase 2 - Profile Page
-**Last completed:** 05 Profile Page - Full UI
-**Next:** 06 Profile Save Logic
+**Last completed:** 06 Profile Save Logic
+**Next:** 07 AI Profile Extraction from Resume
 
 ---
 
@@ -24,7 +24,7 @@ Update this file after every completed feature. Any AI agent reading this should
 ### Phase 2 - Profile Page
 
 - [x] 05 Profile Page - Full UI
-- [ ] 06 Profile Save Logic
+- [x] 06 Profile Save Logic
 - [ ] 07 AI Profile Extraction from Resume
 - [ ] 08 Resume PDF Generation from Profile
 
@@ -65,6 +65,10 @@ _Add decisions here as they are made during implementation._
 - Feature 04 added owner-only RLS for `profiles`, `agent_runs`, `jobs`, and `agent_logs`; `agent_logs` is append-only for authenticated users.
 - PostHog follow-ups closed during Feature 05: pageview/pageleave capture is disabled because the project only allows the four explicit custom events; `identifyPostHogUser()` now initializes PostHog before calling `identify()` to avoid provider timing races.
 - Feature 05 uses mock UI only. Save, upload, extraction, and resume generation buttons are inert until Features 06-08.
+- Feature 06 keeps `/profile` as a Server Component for auth and data loading, with `ProfileInformationForm` as a Client Component only where form state and pending UI are needed.
+- Feature 06 saves profile data through `actions/profile.ts`; profile rows are inserted with array-format `insert([payload])` on first save and updated with `.eq("id", userId)` on later saves.
+- Feature 06 stores array fields from controlled UI state as JSON hidden inputs, then validates/parses them in the server action before writing `text[]` and `jsonb` columns.
+- The installed `@insforge/sdk` storage upload method does not support an `upsert` option, so resume replacement removes the existing fixed object key before uploading the new PDF and saving both returned `url` and `key`.
 
 ---
 
@@ -81,3 +85,4 @@ _Add notes here as the build progresses - workarounds, patterns, anything that d
 - Feature 03 PostHog Initialization: Added typed browser/server PostHog helpers, installed `posthog-node`, routed root layout analytics through the existing client provider, identified authenticated users from protected pages, and reset analytics on sign-out. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts. Note: `npm install` reported 2 moderate advisories; no audit fix was applied because it is outside this feature scope.
 - Feature 04 Database Schema: Created and applied the initial InsForge schema migration for `profiles`, `agent_runs`, `jobs`, and `agent_logs` with constraints, indexes, updated-at triggers, immutable identity guards, grants, and owner-only RLS policies. Created the private `resumes` storage bucket. Verification: InsForge CLI confirmed all four tables exist, RLS is enabled on all four, 11 owner policies exist, and the `resumes` bucket is private.
 - Feature 05 Profile Page - Full UI: Replaced the `/profile` placeholder with the complete mock profile UI from `context/designs/profile.png`: app navbar active state, attention banner, resume upload/generate card, profile information form, work experience card, education, job preferences, and save button. Added profile components under `components/profile` and token CSS helpers in `app/globals.css`. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts.
+- Feature 06 Profile Save Logic: Added `actions/profile.ts`, `lib/profile.ts`, and `types/profile.ts`; `/profile` now loads the current user's profile, pre-fills the form, calculates completion/missing fields, saves profile data to InsForge, uploads replacement resume PDFs to the private `resumes` bucket, stores both resume URL and key, fires `profile_completed` on the first complete save, and revalidates `/profile`. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts.

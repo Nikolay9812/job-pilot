@@ -1,6 +1,14 @@
 import { FileText, UploadCloud } from "lucide-react";
+import type { ProfileRecord } from "@/types/profile";
 
-export function ResumeSection() {
+type ResumeSectionProps = {
+  formId: string;
+  profile: ProfileRecord | null;
+};
+
+export function ResumeSection({ formId, profile }: ResumeSectionProps) {
+  const hasResume = Boolean(profile?.resume_pdf_url);
+
   return (
     <section className="rounded-xl border border-border bg-surface p-8 shadow-card">
       <div>
@@ -21,12 +29,30 @@ export function ResumeSection() {
         <p className="mt-1 text-sm font-medium leading-5 text-text-secondary">
           PDF formatting only. Maximum file size 5MB.
         </p>
-        <button
-          type="button"
+        <label
+          htmlFor="resume"
           className="mt-6 inline-flex min-h-10 items-center justify-center rounded-md border border-border bg-surface px-6 py-2 text-sm font-semibold leading-5 text-text-primary shadow-card transition-colors hover:bg-surface-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         >
           Select Resume
-        </button>
+        </label>
+        <input
+          id="resume"
+          name="resume"
+          type="file"
+          accept="application/pdf,.pdf"
+          form={formId}
+          className="sr-only"
+        />
+        {hasResume ? (
+          <a
+            href={profile?.resume_pdf_url ?? undefined}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-4 text-sm font-semibold leading-5 text-accent"
+          >
+            Current resume saved
+          </a>
+        ) : null}
       </div>
 
       <div className="mt-7 flex flex-col gap-4 border-t border-border pt-7 sm:flex-row sm:items-center sm:justify-between">
