@@ -7,8 +7,8 @@ Update this file after every completed feature. Any AI agent reading this should
 ## Current Status
 
 **Phase:** Phase 3 - Find Jobs Page
-**Last completed:** 09 Find Jobs Page - Full UI
-**Next:** 10 Adzuna Job Discovery
+**Last completed:** 10 Adzuna Job Discovery
+**Next:** 11 Filter + Sort + Pagination
 
 ---
 
@@ -31,7 +31,7 @@ Update this file after every completed feature. Any AI agent reading this should
 ### Phase 3 - Find Jobs Page
 
 - [x] 09 Find Jobs Page - Full UI
-- [ ] 10 Adzuna Job Discovery
+- [x] 10 Adzuna Job Discovery
 - [ ] 11 Filter + Sort + Pagination
 
 ### Phase 4 - Job Details Page
@@ -82,6 +82,13 @@ _Add decisions here as they are made during implementation._
 - Feature 08 preserves the one-active-resume model by replacing `resumes/{user_id}/resume.pdf` and saving both `resume_pdf_url` and `resume_pdf_key`.
 - Feature 09 keeps `/find-jobs` as an authenticated Server Component with mock-only UI components in `components/find-jobs`; no Adzuna calls, DB job queries, filtering, sorting, pagination state, or PostHog job-search events are wired until later features.
 - Feature 09 follows `context/designs/find-jobs.png` for the visible table columns: Company, Role, Match Score, Salary Est., and Date Found. The Source badge from the broader build plan remains deferred because it is not present in the supplied reference image.
+- Feature 10 adds `POST /api/agent/find` as the authenticated Adzuna discovery endpoint; the route validates input, loads the current user's complete profile, creates an `agent_runs` row, calls agent code, revalidates `/find-jobs`, and returns a success/error wrapper.
+- Feature 10 keeps Adzuna access in `lib/adzuna.ts` using `URLSearchParams`, `category=it-jobs`, `results_per_page=10`, default country `us`, and no `where` parameter when location is empty.
+- Feature 10 uses simple deterministic country detection for `gb`, `ca`, and `au`; ambiguous locations stay on the `us` default.
+- Feature 10 centralizes the strong-match threshold as `MATCH_THRESHOLD = 70` in `lib/utils.ts`.
+- Feature 10 keeps GPT-4o scoring in `agent/matcher.ts` with JSON normalization. Per-job scoring failures are logged to `agent_logs`, saved with a fallback score of 0, and do not crash the whole run.
+- Feature 10 saves all successfully inserted Adzuna jobs as `source: 'search'`, then fires `job_found` for each saved row and `job_search_started` once per search.
+- Feature 10 turns `SearchControls` into the real client submit bridge with loading, success, and friendly error states. Jobs table, filters, and pagination intentionally remain mock/static until Feature 11.
 
 ---
 
@@ -102,3 +109,4 @@ _Add notes here as the build progresses - workarounds, patterns, anything that d
 - Feature 07 AI Profile Extraction from Resume: Added `openai`, `agent/resume-extractor.ts`, `app/api/resume/extract/route.ts`, and `components/profile/ProfileWorkspace.tsx`; the resume card now shows Extract from Resume after a saved resume exists, downloads the private PDF on the server, sends it to OpenAI as a base64 PDF file input for normalized profile JSON, and remounts the client form with extracted values for review before manual save. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts. Follow-up fix: removed `pdf-parse` after a Next.js dev worker resolution failure and fixed `next/image` logo dimension warnings by using matching image dimensions instead of CSS resizing.
 - Feature 08 Resume PDF Generation from Profile: Added `@react-pdf/renderer`, `agent/resume-generator.tsx`, and `app/api/resume/generate/route.ts`; the resume card's Generate Resume from Profile button now calls the route, shows loading/success/error feedback, refreshes profile data, and links to the newly generated PDF. The route loads the authenticated user's complete profile, asks GPT-4o for grounded resume JSON, renders an A4 PDF server-side, uploads it to the private `resumes` bucket at the fixed active key, and updates the profile resume metadata. Verification: `npm.cmd run lint` passed after setting the local shell PATH to include Node; `npm.cmd run build` passed after allowing network access for Google Fonts.
 - Feature 09 Find Jobs Page - Full UI: Replaced the `/find-jobs` placeholder with the mock UI from `context/designs/find-jobs.png`: active app navbar, search controls card, success banner, filter/search bar, six-row jobs table with token-colored match bars, and pagination. Components live in `components/find-jobs`. Verification: `npm.cmd run lint` passed after setting the local shell PATH to include Node; `npm.cmd run build` passed after allowing network access for Google Fonts.
+- Feature 10 Adzuna Job Discovery: Added `lib/utils.ts`, `types/jobs.ts`, `lib/adzuna.ts`, `agent/matcher.ts`, `agent/adzuna.ts`, and `app/api/agent/find/route.ts`; wired `components/find-jobs/SearchControls.tsx` to submit real searches, create runs, call Adzuna, score jobs with GPT-4o, save jobs and logs to InsForge, and fire PostHog search/job events. Verification: `npm.cmd run lint` passed after setting the local shell PATH to include Node; `npm.cmd run build` passed after allowing network access for Google Fonts.
