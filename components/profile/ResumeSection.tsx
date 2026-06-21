@@ -1,8 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { FileText, Sparkles, UploadCloud } from "lucide-react";
-import type { ExtractedProfileData, ExtractResumeResponse, ProfileRecord } from "@/types/profile";
+import type {
+  ExtractedProfileData,
+  ExtractResumeResponse,
+  GenerateResumeResponse,
+  ProfileRecord,
+} from "@/types/profile";
 
 type ResumeSectionProps = {
   formId: string;
@@ -15,9 +21,13 @@ export function ResumeSection({
   profile,
   onExtractedProfile,
 }: ResumeSectionProps) {
-  const hasResume = Boolean(profile?.resume_pdf_url);
+  const router = useRouter();
   const [isExtracting, setIsExtracting] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedResumeUrl, setGeneratedResumeUrl] = useState<string | null>(null);
   const [message, setMessage] = useState<{ kind: "success" | "error"; text: string } | null>(null);
+  const currentResumeUrl = generatedResumeUrl ?? profile?.resume_pdf_url ?? null;
+  const hasResume = Boolean(currentResumeUrl);
 
   async function handleExtractResume(): Promise<void> {
     setIsExtracting(true);
@@ -47,6 +57,38 @@ export function ResumeSection({
       setMessage({ kind: "error", text: "We could not extract your resume details." });
     } finally {
       setIsExtracting(false);
+    }
+  }
+
+  async function handleGenerateResume(): Promise<void> {
+    setIsGenerating(true);
+    setMessage(null);
+
+    try {
+      const response = await fetch("/api/resume/generate", { method: "POST" });
+      const result: unknown = await response.json();
+
+      if (!isGenerateResumeResponse(result)) {
+        setMessage({ kind: "error", text: "We could not generate your resume." });
+        return;
+      }
+
+      if (!result.success) {
+        setMessage({ kind: "error", text: result.error });
+        return;
+      }
+
+      setGeneratedResumeUrl(result.data.resumePdfUrl);
+      setMessage({
+        kind: "success",
+        text: "Resume generated and saved. Your current resume has been updated.",
+      });
+      router.refresh();
+    } catch (error) {
+      console.error("[ResumeSection]", error);
+      setMessage({ kind: "error", text: "We could not generate your resume." });
+    } finally {
+      setIsGenerating(false);
     }
   }
 
@@ -86,7 +128,7 @@ export function ResumeSection({
         />
         {hasResume ? (
           <a
-            href={profile?.resume_pdf_url ?? undefined}
+            href={currentResumeUrl ?? undefined}
             target="_blank"
             rel="noreferrer"
             className="mt-4 text-sm font-semibold leading-5 text-accent"
@@ -124,10 +166,12 @@ export function ResumeSection({
         </p>
         <button
           type="button"
-          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-accent px-5 py-2 text-sm font-semibold leading-5 text-accent-foreground transition-colors hover:bg-accent-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          onClick={handleGenerateResume}
+          disabled={isGenerating}
+          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-accent px-5 py-2 text-sm font-semibold leading-5 text-accent-foreground transition-colors hover:bg-accent-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:bg-accent-light disabled:text-accent"
         >
           <FileText className="h-4 w-4" aria-hidden="true" />
-          Generate Resume from Profile
+          {isGenerating ? "Generating..." : "Generate Resume from Profile"}
         </button>
       </div>
     </section>
@@ -141,6 +185,21 @@ function isExtractResumeResponse(value: unknown): value is ExtractResumeResponse
 
   if (value.success) {
     return isRecord(value.data);
+  }
+
+  return typeof value.error === "string";
+}
+
+function isGenerateResumeResponse(value: unknown): value is GenerateResumeResponse {
+  if (!isRecord(value) || typeof value.success !== "boolean") {
+    return false;
+  }
+
+  if (value.success) {
+    return (
+      isRecord(value.data) &&
+      typeof value.data.resumePdfUrl === "string"
+    );
   }
 
   return typeof value.error === "string";

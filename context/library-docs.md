@@ -632,12 +632,14 @@ const ResumePDF = ({ profile }: { profile: Profile }) => (
 const buffer = await renderToBuffer(<ResumePDF profile={profile} />)
 
 // Upload directly to InsForge Storage
+const pdfBlob = new Blob([new Uint8Array(buffer)], {
+  type: 'application/pdf',
+})
+
+await insforge.storage.from('resumes').remove(`${userId}/resume.pdf`)
 await insforge.storage
   .from('resumes')
-  .upload(`${userId}/resume.pdf`, buffer, {
-    contentType: 'application/pdf',
-    upsert: true
-  })
+  .upload(`${userId}/resume.pdf`, pdfBlob)
 ```
 
 **Supported CSS properties:**
@@ -649,6 +651,8 @@ Only use these — others are silently ignored:
 - Server-side only — never import in client components
 - Always use `renderToBuffer` — not `renderToStream` or `PDFDownloadLink`
 - PDF generation only in `app/api/resume/` routes
+- Convert generated buffers to PDF `Blob` objects before InsForge Storage upload
+- The installed `@insforge/sdk` storage `upload(path, file)` accepts `File | Blob` and does not accept an `upsert` option, so remove the fixed resume key before uploading a generated replacement
 - Generated buffer uploaded directly to InsForge Storage — never written to disk
 - Always save public URL to DB after upload
 

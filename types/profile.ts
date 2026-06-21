@@ -79,3 +79,7 @@ export type ExtractedProfileData = {
 export type ExtractResumeResponse =
   | { success: true; data: ExtractedProfileData }
   | { success: false; error: string };
+
+export type GenerateResumeResponse =
+  | { success: true; data: { resumePdfUrl: string } }
+  | { success: false; error: string };

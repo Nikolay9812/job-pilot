@@ -105,7 +105,7 @@ Last updated: 2026-06-18
 
 No visible UI components were added for Feature 04. The database schema feature creates backend persistence only, so existing visual patterns remain unchanged.
 
-### Profile Page Full UI + Save Logic + Resume Extraction
+### Profile Page Full UI + Save Logic + Resume Extraction + Resume Generation
 
 File: app/profile/page.tsx, components/layout/Navbar.tsx, components/profile/*
 Last updated: 2026-06-21
@@ -123,4 +123,4 @@ Last updated: 2026-06-21
 | Accent usage     | Primary buttons `bg-accent text-accent-foreground`; active app nav `border-accent text-accent`; upload icon/current resume link/add role `text-accent`; checkbox `accent-accent`; completion ring uses token CSS with `--color-error` or `--color-success` |
 
 **Pattern notes:**
-The protected app navbar is an explicit `variant="app"` on the shared `Navbar`, with active route color and underline only on app pages. The profile page keeps the centered 980px layout and white card stack from `context/designs/profile.png`; `ProfileWorkspace` is the client bridge between resume extraction and the form, while `ProfileInformationForm` owns controlled field state. The resume selector is visually in the resume card but associated to the profile form through the HTML `form` attribute. The Extract from Resume button uses the same primary button pattern as save/generate actions, shows token-colored success/error feedback inside the resume card, and only populates fields for review before save. Generated resume behavior remains deferred to Feature 08.
+The protected app navbar is an explicit `variant="app"` on the shared `Navbar`, with active route color and underline only on app pages. The profile page keeps the centered 980px layout and white card stack from `context/designs/profile.png`; `ProfileWorkspace` is the client bridge between resume extraction and the form, while `ProfileInformationForm` owns controlled field state. The resume selector is visually in the resume card but associated to the profile form through the HTML `form` attribute. The Extract from Resume and Generate Resume from Profile buttons use the same primary button pattern, show loading text in place, and share token-colored success/error feedback inside the resume card. Generated resume success updates the current resume link and refreshes the server-loaded profile data.

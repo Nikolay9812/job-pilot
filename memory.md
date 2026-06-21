@@ -1,38 +1,35 @@
-# Memory - Feature 07 AI Profile Extraction from Resume
+# Memory - Feature 08 Resume PDF Generation from Profile
 
-Last updated: 2026-06-21 07:12 Europe/Berlin
+Last updated: 2026-06-21 08:45 Europe/Berlin
 
 ## What was built
 
-- Feature 07 AI Profile Extraction from Resume is complete and verified working end to end.
-- Added `agent/resume-extractor.ts` for server-only OpenAI resume extraction from saved PDF bytes.
-- Added `app/api/resume/extract/route.ts` to authenticate the user, load the user's profile row, download the saved private resume, call the extractor, and return normalized profile JSON.
-- Added `components/profile/ProfileWorkspace.tsx` as the client bridge between resume extraction and the profile form.
-- Updated `components/profile/ResumeSection.tsx` with the `Extract from Resume` action, loading state, success/error messages, and callback into the profile workspace.
-- Updated `components/profile/ProfileInformationForm.tsx` so extracted data can repopulate the controlled form for user review before manual save.
-- Updated `types/profile.ts` with extraction response/data types.
-- Updated `components/layout/Navbar.tsx` and `components/layout/Footer.tsx` to use matching `next/image` dimensions for `public/logo.png`, removing the aspect-ratio warning.
-- Updated `context/library-docs.md`, `context/progress-tracker.md`, and `context/ui-registry.md`.
+- Feature 08 Resume PDF Generation from Profile is complete and verified.
+- Added `@react-pdf/renderer` to `package.json` / `package-lock.json`.
+- Added `agent/resume-generator.tsx` for server-only GPT-4o resume content generation and A4 PDF rendering with `renderToBuffer()`.
+- Added `app/api/resume/generate/route.ts` to authenticate the current user, load their saved profile, require profile completion, generate a PDF, upload it to InsForge Storage, update profile resume metadata, and revalidate `/profile`.
+- Updated `components/profile/ResumeSection.tsx` so Generate Resume from Profile calls `/api/resume/generate`, shows loading/success/error feedback, updates the current resume link, and refreshes server-loaded profile data.
+- Updated `types/profile.ts` with `GenerateResumeResponse`.
+- Updated `context/progress-tracker.md`, `context/ui-registry.md`, and `context/library-docs.md`.
 
 ## Decisions made
 
-- Feature 07 extracts only from the already-saved private resume referenced by `profiles.resume_pdf_key`; it does not process unsaved browser files.
-- Extraction never writes directly to the database. It only fills the form, and the user must review/edit and click Save Profile.
-- OpenAI calls stay server-only in `agent/resume-extractor.ts` and use `gpt-4o` through the Responses API.
-- The implementation uses OpenAI PDF file input (`input_file` with base64 `file_data`) instead of a local PDF parser.
-- `pdf-parse` was removed because its `pdfjs-dist` worker failed in Next.js dev/Turbopack by resolving to a missing `.next/dev/server/chunks/pdf.worker.mjs`.
-- OpenAI JSON mode requires the request input text itself to include the word `json`; the extractor's user message explicitly asks for valid json.
-- The extraction route first tries normal InsForge Storage `.download()`, then falls back to an authenticated direct object fetch with the same server client if the private-bucket signed URL fetch fails.
-- The direct storage fallback is only used after verifying the saved resume key starts with the current user's id.
-- OpenAI `insufficient_quota` and generic 429 rate-limit failures are mapped to explicit user-facing messages with HTTP 429.
+- Resume generation requires a saved complete profile. Missing or incomplete profiles return friendly 400 responses and do not call OpenAI.
+- Generated resumes are not job-specific; GPT-4o polishes the saved profile into resume-ready language without inventing facts.
+- The app keeps one active resume only. Generated PDFs replace `resumes/{user_id}/resume.pdf` and update both `resume_pdf_url` and `resume_pdf_key`.
+- AI and PDF rendering stay server-only. Client components only trigger the route and render user feedback.
+- `@react-pdf/renderer` is used only in server code, with no filesystem writes.
+- The generated PDF buffer is converted to a PDF `Blob` before InsForge upload because the installed `@insforge/sdk` storage `upload(path, file)` accepts `File | Blob` and does not support an `upsert` option.
+- The route removes the fixed resume key before uploading the generated replacement, matching the existing one-active-resume storage pattern.
+- OpenAI `insufficient_quota` and 429 rate-limit errors are mapped to explicit human-readable 429 responses, matching Feature 07.
+- PDF styling avoids hardcoded hex values and raw Tailwind color classes.
 
 ## Problems solved
 
-- Fixed the original `pdf.worker.mjs` failure by removing `pdf-parse` from the extraction path and sending the PDF directly to OpenAI.
-- Fixed the OpenAI JSON mode validation error by including `json` in the input message text.
-- Fixed the InsForge private storage download failure by adding the authenticated direct object fallback.
-- Fixed the `next/image` logo warning by using rendered dimensions that match the actual displayed logo ratio instead of CSS resizing only one dimension.
-- Identified that a later OpenAI `insufficient_quota` error was not an app bug. After the OpenAI project quota/billing issue was resolved externally, Extract from Resume worked.
+- Confirmed `@react-pdf/renderer` was not installed before Feature 08 and added it.
+- Confirmed the current InsForge SDK storage upload type expects `File | Blob`, so the generated `Buffer` cannot be uploaded directly.
+- `npm.cmd run lint` initially failed because `node` was not visible on PATH inside the npm script. Verification passed after temporarily prepending `C:\Program Files\nodejs` to PATH for that shell process.
+- `git` is not available on PATH in this shell, so git status/diff summaries could not be produced.
 
 ## Current state
 
@@ -41,39 +38,29 @@ Last updated: 2026-06-21 07:12 Europe/Berlin
   - `02 Auth`
   - `03 PostHog Initialization`
   - `04 Database Schema`
-- Phase 2 Profile Page status:
-  - `05 Profile Page - Full UI` complete.
-  - `06 Profile Save Logic` complete.
-  - `07 AI Profile Extraction from Resume` complete and verified working.
-  - `08 Resume PDF Generation from Profile` not started.
+- Phase 2 Profile Page is complete:
+  - `05 Profile Page - Full UI`
+  - `06 Profile Save Logic`
+  - `07 AI Profile Extraction from Resume`
+  - `08 Resume PDF Generation from Profile`
+- Current progress tracker status:
+  - Phase: Phase 3 - Find Jobs Page
+  - Last completed: 08 Resume PDF Generation from Profile
+  - Next: 09 Find Jobs Page - Full UI
 - Verification:
-  - `npm.cmd run lint` passes.
-  - `npm.cmd run build` passes when network access is allowed for Google Fonts.
-- Expected changed files from Feature 07:
-  - `agent/resume-extractor.ts`
-  - `app/api/resume/extract/route.ts`
-  - `app/profile/page.tsx`
-  - `components/profile/ProfileWorkspace.tsx`
-  - `components/profile/ResumeSection.tsx`
-  - `components/profile/ProfileInformationForm.tsx`
-  - `components/layout/Navbar.tsx`
-  - `components/layout/Footer.tsx`
-  - `types/profile.ts`
-  - `package.json`
-  - `package-lock.json`
-  - `context/library-docs.md`
-  - `context/progress-tracker.md`
-  - `context/ui-registry.md`
-  - `memory.md`
+  - `npm.cmd run lint` passes when the local shell PATH includes Node.
+  - `npm.cmd run build` passes after allowing network access for Google Fonts.
+- npm install reported 2 moderate advisories; no audit fix was applied because it was outside Feature 08 scope.
 
 ## Next session starts with
 
 - Run `/remember restore`.
 - Read `AGENTS.md` and the required context files in order before implementation.
-- Start Feature 08 Resume PDF Generation from Profile from `context/build-plan.md`.
-- Before implementing Feature 08, use `/architect` because it is a new complex feature.
-- Feature 08 should add `POST /api/resume/generate`, read current profile data, use GPT-4o to generate professional resume content, render a PDF with `@react-pdf/renderer`, upload it to InsForge Storage at the existing resume key, and update `profiles.resume_pdf_url`.
-- Preserve the Feature 07 pattern: AI operations are API-route triggered, agent logic lives under `agent/`, and profile data is not mutated until a route/action explicitly owns that mutation.
+- Start Feature 09 Find Jobs Page - Full UI from `context/build-plan.md`.
+- Feature 09 is UI-only with mock data. No Adzuna, OpenAI matching, database filtering, or pagination logic yet.
+- Before building Feature 09, use `/architect` if treating it as a complex UI feature.
+- For styling, follow `context/ui-tokens.md`, `context/ui-rules.md`, and existing patterns in `context/ui-registry.md`; never use hardcoded hex values or raw Tailwind color classes.
+- After Feature 09, update `context/progress-tracker.md` and `context/ui-registry.md`.
 
 ## Open questions
 
