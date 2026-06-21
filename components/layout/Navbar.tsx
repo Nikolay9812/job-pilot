@@ -25,7 +25,6 @@ export function Navbar({ activeHref, variant = "marketing" }: NavbarProps) {
               width={118}
               height={36}
               priority
-              className="h-9 w-auto"
             />
           </Link>
 
@@ -61,10 +60,9 @@ export function Navbar({ activeHref, variant = "marketing" }: NavbarProps) {
           <Image
             src="/logo.png"
             alt="JobPilot"
-            width={209}
-            height={64}
+            width={157}
+            height={48}
             priority
-            className="h-12 w-auto"
           />
         </Link>
 

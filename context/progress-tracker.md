@@ -7,8 +7,8 @@ Update this file after every completed feature. Any AI agent reading this should
 ## Current Status
 
 **Phase:** Phase 2 - Profile Page
-**Last completed:** 06 Profile Save Logic
-**Next:** 07 AI Profile Extraction from Resume
+**Last completed:** 07 AI Profile Extraction from Resume
+**Next:** 08 Resume PDF Generation from Profile
 
 ---
 
@@ -25,7 +25,7 @@ Update this file after every completed feature. Any AI agent reading this should
 
 - [x] 05 Profile Page - Full UI
 - [x] 06 Profile Save Logic
-- [ ] 07 AI Profile Extraction from Resume
+- [x] 07 AI Profile Extraction from Resume
 - [ ] 08 Resume PDF Generation from Profile
 
 ### Phase 3 - Find Jobs Page
@@ -69,6 +69,13 @@ _Add decisions here as they are made during implementation._
 - Feature 06 saves profile data through `actions/profile.ts`; profile rows are inserted with array-format `insert([payload])` on first save and updated with `.eq("id", userId)` on later saves.
 - Feature 06 stores array fields from controlled UI state as JSON hidden inputs, then validates/parses them in the server action before writing `text[]` and `jsonb` columns.
 - The installed `@insforge/sdk` storage upload method does not support an `upsert` option, so resume replacement removes the existing fixed object key before uploading the new PDF and saving both returned `url` and `key`.
+- Feature 07 extracts only from the saved private resume object referenced by `profiles.resume_pdf_key`; extraction never writes to the database and the user must review and save manually.
+- Feature 07 uses OpenAI PDF file input through `openai.responses.create()` instead of `pdf-parse`; `pdf-parse` v2 failed in Next.js dev because its `pdfjs-dist` worker resolved to a missing `.next/dev/server/chunks/pdf.worker.mjs` file.
+- Feature 07 keeps OpenAI calls server-only in `agent/resume-extractor.ts`, using `gpt-4o`, JSON response format, and `OPENAI_API_KEY` from `.env.local`.
+- OpenAI Responses JSON mode requires the request input message itself to contain the word `json`, so Feature 07's PDF extraction user message explicitly asks for valid json.
+- Feature 07's extraction route keeps the normal InsForge Storage `.download()` path, but falls back to an authenticated direct object fetch when the private-bucket signed URL fetch fails after the current user's resume key has been verified.
+- Feature 07 maps OpenAI `insufficient_quota` and 429 rate-limit responses to explicit user-facing messages with HTTP 429 instead of hiding them behind the generic extraction error.
+- Feature 07 is verified working end to end after the OpenAI project quota/billing issue was resolved externally; Extract from Resume now downloads the saved private resume, sends it to OpenAI, and populates the profile form for review before manual save.
 
 ---
 
@@ -86,3 +93,4 @@ _Add notes here as the build progresses - workarounds, patterns, anything that d
 - Feature 04 Database Schema: Created and applied the initial InsForge schema migration for `profiles`, `agent_runs`, `jobs`, and `agent_logs` with constraints, indexes, updated-at triggers, immutable identity guards, grants, and owner-only RLS policies. Created the private `resumes` storage bucket. Verification: InsForge CLI confirmed all four tables exist, RLS is enabled on all four, 11 owner policies exist, and the `resumes` bucket is private.
 - Feature 05 Profile Page - Full UI: Replaced the `/profile` placeholder with the complete mock profile UI from `context/designs/profile.png`: app navbar active state, attention banner, resume upload/generate card, profile information form, work experience card, education, job preferences, and save button. Added profile components under `components/profile` and token CSS helpers in `app/globals.css`. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts.
 - Feature 06 Profile Save Logic: Added `actions/profile.ts`, `lib/profile.ts`, and `types/profile.ts`; `/profile` now loads the current user's profile, pre-fills the form, calculates completion/missing fields, saves profile data to InsForge, uploads replacement resume PDFs to the private `resumes` bucket, stores both resume URL and key, fires `profile_completed` on the first complete save, and revalidates `/profile`. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts.
+- Feature 07 AI Profile Extraction from Resume: Added `openai`, `agent/resume-extractor.ts`, `app/api/resume/extract/route.ts`, and `components/profile/ProfileWorkspace.tsx`; the resume card now shows Extract from Resume after a saved resume exists, downloads the private PDF on the server, sends it to OpenAI as a base64 PDF file input for normalized profile JSON, and remounts the client form with extracted values for review before manual save. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts. Follow-up fix: removed `pdf-parse` after a Next.js dev worker resolution failure and fixed `next/image` logo dimension warnings by using matching image dimensions instead of CSS resizing.

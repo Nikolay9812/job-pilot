@@ -15,9 +15,8 @@ export function Footer() {
           <Image
             src="/logo.png"
             alt="JobPilot"
-            width={209}
-            height={64}
-            className="h-12 w-auto"
+            width={157}
+            height={48}
           />
         </Link>
 

@@ -2,8 +2,14 @@
 
 import { useActionState, useMemo, useState } from "react";
 import { saveProfile } from "@/actions/profile";
-import { emptyEducation, emptyWorkExperience, splitList } from "@/lib/profile";
-import type { ProfileActionState, ProfileRecord, WorkExperience } from "@/types/profile";
+import { emptyEducation, emptyWorkExperience, hasText, splitList } from "@/lib/profile";
+import type {
+  Education,
+  ExtractedProfileData,
+  ProfileActionState,
+  ProfileRecord,
+  WorkExperience,
+} from "@/types/profile";
 
 const labelClass = "text-xs font-semibold uppercase leading-4 text-text-secondary";
 const inputClass =
@@ -18,6 +24,7 @@ type ProfileInformationFormProps = {
   formId: string;
   profile: ProfileRecord | null;
   userEmail: string;
+  extractedProfile: ExtractedProfileData | null;
 };
 
 const initialActionState: ProfileActionState = {
@@ -29,23 +36,82 @@ export function ProfileInformationForm({
   formId,
   profile,
   userEmail,
+  extractedProfile,
 }: ProfileInformationFormProps) {
   const [state, formAction, isPending] = useActionState(saveProfile, initialActionState);
-  const [skills, setSkills] = useState<string[]>(profile?.skills ?? []);
+  const initialEducation = mergeEducation(
+    profile?.education ?? emptyEducation(),
+    extractedProfile?.education ?? emptyEducation(),
+  );
+  const [fullName, setFullName] = useState(
+    mergeText(profile?.full_name ?? "", extractedProfile?.fullName ?? ""),
+  );
+  const [phone, setPhone] = useState(
+    mergeText(profile?.phone ?? "", extractedProfile?.phone ?? ""),
+  );
+  const [location, setLocation] = useState(
+    mergeText(profile?.location ?? "", extractedProfile?.location ?? ""),
+  );
+  const [linkedinUrl, setLinkedinUrl] = useState(
+    mergeText(profile?.linkedin_url ?? "", extractedProfile?.linkedinUrl ?? ""),
+  );
+  const [portfolioUrl, setPortfolioUrl] = useState(
+    mergeText(profile?.portfolio_url ?? "", extractedProfile?.portfolioUrl ?? ""),
+  );
+  const [workAuthorization, setWorkAuthorization] = useState(
+    mergeText(profile?.work_authorization ?? "", extractedProfile?.workAuthorization ?? ""),
+  );
+  const [currentTitle, setCurrentTitle] = useState(
+    mergeText(profile?.current_title ?? "", extractedProfile?.currentTitle ?? ""),
+  );
+  const [experienceLevel, setExperienceLevel] = useState(
+    mergeText(profile?.experience_level ?? "", extractedProfile?.experienceLevel ?? ""),
+  );
+  const [yearsExperience, setYearsExperience] = useState(
+    extractedProfile?.yearsExperience !== null && extractedProfile?.yearsExperience !== undefined
+      ? String(extractedProfile.yearsExperience)
+      : profile?.years_experience === null || profile?.years_experience === undefined
+      ? ""
+      : String(profile.years_experience),
+  );
+  const [skills, setSkills] = useState<string[]>(
+    mergeStringArrays(profile?.skills ?? [], extractedProfile?.skills ?? []),
+  );
   const [skillDraft, setSkillDraft] = useState("");
-  const [industries, setIndustries] = useState<string[]>(profile?.industries ?? []);
+  const [industries, setIndustries] = useState<string[]>(
+    mergeStringArrays(profile?.industries ?? [], extractedProfile?.industries ?? []),
+  );
   const [industryDraft, setIndustryDraft] = useState("");
   const [jobTitlesText, setJobTitlesText] = useState(
-    (profile?.job_titles_seeking ?? []).join(", "),
+    mergeStringArrays(
+      profile?.job_titles_seeking ?? [],
+      extractedProfile?.jobTitlesSeeking ?? [],
+    ).join(", "),
   );
   const [preferredLocationsText, setPreferredLocationsText] = useState(
-    (profile?.preferred_locations ?? []).join(", "),
+    mergeStringArrays(
+      profile?.preferred_locations ?? [],
+      extractedProfile?.preferredLocations ?? [],
+    ).join(", "),
   );
   const [workExperience, setWorkExperience] = useState<WorkExperience[]>(
-    profile?.work_experience.length ? profile.work_experience : [emptyWorkExperience()],
+    extractedProfile?.workExperience.length
+      ? extractedProfile.workExperience
+      : profile?.work_experience.length
+        ? profile.work_experience
+        : [emptyWorkExperience()],
+  );
+  const [education, setEducation] = useState<Education>(initialEducation);
+  const [remotePreference, setRemotePreference] = useState(
+    mergeText(profile?.remote_preference ?? "", extractedProfile?.remotePreference ?? ""),
+  );
+  const [salaryExpectation, setSalaryExpectation] = useState(
+    mergeText(profile?.salary_expectation ?? "", extractedProfile?.salaryExpectation ?? ""),
+  );
+  const [coverLetterTone, setCoverLetterTone] = useState(
+    mergeText(profile?.cover_letter_tone ?? "", extractedProfile?.coverLetterTone ?? ""),
   );
 
-  const education = profile?.education ?? emptyEducation();
   const jobTitlesSeeking = useMemo(() => splitList(jobTitlesText), [jobTitlesText]);
   const preferredLocations = useMemo(
     () => splitList(preferredLocationsText),
@@ -116,7 +182,8 @@ export function ProfileInformationForm({
                 id="full-name"
                 name="fullName"
                 className={inputClass}
-                defaultValue={profile?.full_name ?? ""}
+                value={fullName}
+                onChange={(event) => setFullName(event.target.value)}
                 placeholder="Faizan Ali"
               />
             </label>
@@ -127,7 +194,7 @@ export function ProfileInformationForm({
                 name="email"
                 type="email"
                 className={mutedInputClass}
-                defaultValue={profile?.email ?? userEmail}
+                value={profile?.email ?? userEmail}
                 readOnly
               />
             </label>
@@ -137,7 +204,8 @@ export function ProfileInformationForm({
                 id="phone"
                 name="phone"
                 className={inputClass}
-                defaultValue={profile?.phone ?? ""}
+                value={phone}
+                onChange={(event) => setPhone(event.target.value)}
                 placeholder="+1 (555) 000-0000"
               />
             </label>
@@ -147,7 +215,8 @@ export function ProfileInformationForm({
                 id="location"
                 name="location"
                 className={inputClass}
-                defaultValue={profile?.location ?? ""}
+                value={location}
+                onChange={(event) => setLocation(event.target.value)}
                 placeholder="City, Country"
               />
             </label>
@@ -157,7 +226,8 @@ export function ProfileInformationForm({
                 id="linkedin-url"
                 name="linkedinUrl"
                 className={inputClass}
-                defaultValue={profile?.linkedin_url ?? ""}
+                value={linkedinUrl}
+                onChange={(event) => setLinkedinUrl(event.target.value)}
                 placeholder="https://linkedin.com/in/faizan"
               />
             </label>
@@ -167,7 +237,8 @@ export function ProfileInformationForm({
                 id="portfolio-url"
                 name="portfolioUrl"
                 className={inputClass}
-                defaultValue={profile?.portfolio_url ?? ""}
+                value={portfolioUrl}
+                onChange={(event) => setPortfolioUrl(event.target.value)}
                 placeholder="https://github.com/jsmastery"
               />
             </label>
@@ -177,7 +248,8 @@ export function ProfileInformationForm({
                 id="work-authorization"
                 name="workAuthorization"
                 className={inputClass}
-                defaultValue={profile?.work_authorization ?? ""}
+                value={workAuthorization}
+                onChange={(event) => setWorkAuthorization(event.target.value)}
               >
                 <option value="">Select authorization</option>
                 <option value="citizen">Citizen</option>
@@ -197,7 +269,8 @@ export function ProfileInformationForm({
                 id="current-title"
                 name="currentTitle"
                 className={inputClass}
-                defaultValue={profile?.current_title ?? ""}
+                value={currentTitle}
+                onChange={(event) => setCurrentTitle(event.target.value)}
                 placeholder="Frontend Engineer"
               />
             </label>
@@ -207,7 +280,8 @@ export function ProfileInformationForm({
                 id="experience-level"
                 name="experienceLevel"
                 className={inputClass}
-                defaultValue={profile?.experience_level ?? ""}
+                value={experienceLevel}
+                onChange={(event) => setExperienceLevel(event.target.value)}
               >
                 <option value="">Select level</option>
                 <option value="junior">Junior</option>
@@ -224,7 +298,8 @@ export function ProfileInformationForm({
                 type="number"
                 min="0"
                 className={inputClass}
-                defaultValue={profile?.years_experience ?? ""}
+                value={yearsExperience}
+                onChange={(event) => setYearsExperience(event.target.value)}
                 placeholder="4"
               />
             </label>
@@ -414,7 +489,10 @@ export function ProfileInformationForm({
                 id="highest-degree"
                 name="highestDegree"
                 className={inputClass}
-                defaultValue={education.highestDegree}
+                value={education.highestDegree}
+                onChange={(event) =>
+                  setEducation((current) => ({ ...current, highestDegree: event.target.value }))
+                }
               >
                 <option value="">Select degree</option>
                 <option value="High School">High School</option>
@@ -429,7 +507,10 @@ export function ProfileInformationForm({
                 id="field-of-study"
                 name="fieldOfStudy"
                 className={inputClass}
-                defaultValue={education.fieldOfStudy}
+                value={education.fieldOfStudy}
+                onChange={(event) =>
+                  setEducation((current) => ({ ...current, fieldOfStudy: event.target.value }))
+                }
                 placeholder="Computer Science"
               />
             </label>
@@ -439,7 +520,10 @@ export function ProfileInformationForm({
                 id="institution-name"
                 name="institutionName"
                 className={inputClass}
-                defaultValue={education.institutionName}
+                value={education.institutionName}
+                onChange={(event) =>
+                  setEducation((current) => ({ ...current, institutionName: event.target.value }))
+                }
                 placeholder="E.g. State University"
               />
             </label>
@@ -449,7 +533,10 @@ export function ProfileInformationForm({
                 id="graduation-year"
                 name="graduationYear"
                 className={inputClass}
-                defaultValue={education.graduationYear}
+                value={education.graduationYear}
+                onChange={(event) =>
+                  setEducation((current) => ({ ...current, graduationYear: event.target.value }))
+                }
                 placeholder="YYYY"
               />
             </label>
@@ -475,7 +562,8 @@ export function ProfileInformationForm({
                 id="remote-preference"
                 name="remotePreference"
                 className={inputClass}
-                defaultValue={profile?.remote_preference ?? ""}
+                value={remotePreference}
+                onChange={(event) => setRemotePreference(event.target.value)}
               >
                 <option value="">Select preference</option>
                 <option value="any">Any</option>
@@ -490,7 +578,8 @@ export function ProfileInformationForm({
                 id="salary-expectation"
                 name="salaryExpectation"
                 className={inputClass}
-                defaultValue={profile?.salary_expectation ?? ""}
+                value={salaryExpectation}
+                onChange={(event) => setSalaryExpectation(event.target.value)}
                 placeholder="E.g. $120k+"
               />
             </label>
@@ -510,7 +599,8 @@ export function ProfileInformationForm({
                 id="cover-letter-tone"
                 name="coverLetterTone"
                 className={inputClass}
-                defaultValue={profile?.cover_letter_tone ?? ""}
+                value={coverLetterTone}
+                onChange={(event) => setCoverLetterTone(event.target.value)}
               >
                 <option value="">Select tone</option>
                 <option value="formal">Formal</option>
@@ -544,4 +634,29 @@ export function ProfileInformationForm({
       </form>
     </section>
   );
+}
+
+function mergeText(currentValue: string, extractedValue: string): string {
+  return hasText(extractedValue) ? extractedValue : currentValue;
+}
+
+function mergeStringArrays(currentItems: string[], extractedItems: string[]): string[] {
+  const normalized = new Set(currentItems);
+
+  for (const item of extractedItems) {
+    if (hasText(item)) {
+      normalized.add(item.trim());
+    }
+  }
+
+  return Array.from(normalized);
+}
+
+function mergeEducation(current: Education, extracted: Education): Education {
+  return {
+    highestDegree: mergeText(current.highestDegree, extracted.highestDegree),
+    fieldOfStudy: mergeText(current.fieldOfStudy, extracted.fieldOfStudy),
+    institutionName: mergeText(current.institutionName, extracted.institutionName),
+    graduationYear: mergeText(current.graduationYear, extracted.graduationYear),
+  };
 }

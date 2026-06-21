@@ -531,6 +531,7 @@ const result = JSON.parse(response.choices[0].message.content!);
 - Always use `response_format: { type: 'json_object' }` for structured data
 - Always parse `response.choices[0].message.content` as string — even with json_object it returns a string
 - Always validate parsed JSON before using — wrap in try/catch
+- Treat OpenAI `insufficient_quota` separately from extraction bugs. Return a human-readable billing/quota message with HTTP 429 instead of the generic extraction failure.
 - Match threshold is always `MATCH_THRESHOLD` from `lib/utils.ts` — never hardcode 70
 - Company research synthesis must always return a complete dossier — never return empty even if browser research failed
 
@@ -653,32 +654,54 @@ Only use these — others are silently ignored:
 
 ---
 
-## pdf-parse
+## OpenAI PDF File Input
 
-**Check first:** Check AGENTS.md for an installed pdf-parse skill.
+Feature 07 uses OpenAI file input for resume extraction. Do not use `pdf-parse` in this Next.js app: `pdf-parse` v2 depends on a `pdfjs-dist` worker that Turbopack dev can resolve to a missing `.next/dev/server/chunks/pdf.worker.mjs` file.
 
-### Extract Text from Uploaded Resume
+### Resume Profile Extraction
+
+Feature 07 sends the saved PDF bytes directly to OpenAI as a file input. Do not add a local PDF text parser for this flow.
+
+**Rules:**
+
+Feature 07 extracts from the saved private resume object, not directly from an unsaved browser file:
 
 ```typescript
-import pdf from "pdf-parse";
+const { data: blob, error } = await insforge.storage
+  .from("resumes")
+  .download(profile.resume_pdf_key);
 
-// In API route handling resume upload
-export async function POST(req: NextRequest) {
-  const formData = await req.formData();
-  const file = formData.get("resume") as File;
-  const arrayBuffer = await file.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
+const resumeBuffer = Buffer.from(await blob.arrayBuffer());
 
-  const pdfData = await pdf(buffer);
-  const extractedText = pdfData.text; // raw text content
-
-  // Send to GPT-4o for structured extraction
-}
+const response = await openai.responses.create({
+  model: "gpt-4o",
+  instructions: extractionSystemPrompt,
+  text: { format: { type: "json_object" } },
+  input: [
+    {
+      role: "user",
+      content: [
+        {
+          type: "input_file",
+          filename: "resume.pdf",
+          file_data: `data:application/pdf;base64,${resumeBuffer.toString("base64")}`,
+        },
+        {
+          type: "input_text",
+          text: "Extract profile details from this resume PDF and return valid json only.",
+        },
+      ],
+    },
+  ],
+});
 ```
 
 **Rules:**
 
-- Server-side only — never import in client components
-- `pdfData.text` is raw unformatted text — GPT-4o handles the structure extraction
-- Always handle parse errors — some PDFs are image-based and return empty text
-- If `pdfData.text` is empty or very short — return error to user: "Could not extract text from this PDF. Please try a different file."
+- `/api/resume/extract` must authenticate the current user, load only their `profiles` row, and download only `profiles.resume_pdf_key`.
+- Use `openai.responses.create()` with `input_file` for PDF extraction.
+- `file_data` must be a data URL: `data:application/pdf;base64,{base64String}`.
+- When using `text.format: { type: "json_object" }`, the input message text must include the word `json`.
+- If private-bucket `.download()` fails after a signed URL is generated, `/api/resume/extract` may fall back to `insforge.getHttpClient().rawFetch()` against `/api/storage/buckets/resumes/objects/{encodedKey}` after confirming the key starts with the current user's id.
+- Extraction returns normalized profile JSON to the client; it does not update the database.
+- The client form is populated for review, then the existing `saveProfile` Server Action persists the user's reviewed values.

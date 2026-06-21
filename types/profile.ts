@@ -53,3 +53,29 @@ export type ProfileActionState = {
   completionPercentage?: number;
   missingFields?: string[];
 };
+
+export type ExtractedProfileData = {
+  fullName: string;
+  email: string;
+  phone: string;
+  location: string;
+  linkedinUrl: string;
+  portfolioUrl: string;
+  workAuthorization: WorkAuthorization | "";
+  currentTitle: string;
+  experienceLevel: ExperienceLevel | "";
+  yearsExperience: number | null;
+  skills: string[];
+  industries: string[];
+  workExperience: WorkExperience[];
+  education: Education;
+  jobTitlesSeeking: string[];
+  remotePreference: RemotePreference | "";
+  preferredLocations: string[];
+  salaryExpectation: string;
+  coverLetterTone: CoverLetterTone | "";
+};
+
+export type ExtractResumeResponse =
+  | { success: true; data: ExtractedProfileData }
+  | { success: false; error: string };

@@ -1,13 +1,54 @@
-import { FileText, UploadCloud } from "lucide-react";
-import type { ProfileRecord } from "@/types/profile";
+"use client";
+
+import { useState } from "react";
+import { FileText, Sparkles, UploadCloud } from "lucide-react";
+import type { ExtractedProfileData, ExtractResumeResponse, ProfileRecord } from "@/types/profile";
 
 type ResumeSectionProps = {
   formId: string;
   profile: ProfileRecord | null;
+  onExtractedProfile: (profile: ExtractedProfileData) => void;
 };
 
-export function ResumeSection({ formId, profile }: ResumeSectionProps) {
+export function ResumeSection({
+  formId,
+  profile,
+  onExtractedProfile,
+}: ResumeSectionProps) {
   const hasResume = Boolean(profile?.resume_pdf_url);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [message, setMessage] = useState<{ kind: "success" | "error"; text: string } | null>(null);
+
+  async function handleExtractResume(): Promise<void> {
+    setIsExtracting(true);
+    setMessage(null);
+
+    try {
+      const response = await fetch("/api/resume/extract", { method: "POST" });
+      const result: unknown = await response.json();
+
+      if (!isExtractResumeResponse(result)) {
+        setMessage({ kind: "error", text: "We could not extract your resume details." });
+        return;
+      }
+
+      if (!result.success) {
+        setMessage({ kind: "error", text: result.error });
+        return;
+      }
+
+      onExtractedProfile(result.data);
+      setMessage({
+        kind: "success",
+        text: "Resume details extracted. Review the populated fields before saving.",
+      });
+    } catch (error) {
+      console.error("[ResumeSection]", error);
+      setMessage({ kind: "error", text: "We could not extract your resume details." });
+    } finally {
+      setIsExtracting(false);
+    }
+  }
 
   return (
     <section className="rounded-xl border border-border bg-surface p-8 shadow-card">
@@ -53,6 +94,28 @@ export function ResumeSection({ formId, profile }: ResumeSectionProps) {
             Current resume saved
           </a>
         ) : null}
+        {hasResume ? (
+          <button
+            type="button"
+            onClick={handleExtractResume}
+            disabled={isExtracting}
+            className="mt-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-accent px-5 py-2 text-sm font-semibold leading-5 text-accent-foreground transition-colors hover:bg-accent-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:bg-accent-light disabled:text-accent"
+          >
+            <Sparkles className="h-4 w-4" aria-hidden="true" />
+            {isExtracting ? "Extracting..." : "Extract from Resume"}
+          </button>
+        ) : null}
+        {message ? (
+          <p
+            className={`mt-4 rounded-md border bg-surface px-4 py-3 text-sm font-medium leading-5 ${
+              message.kind === "success"
+                ? "border-success text-success-foreground"
+                : "border-error text-error"
+            }`}
+          >
+            {message.text}
+          </p>
+        ) : null}
       </div>
 
       <div className="mt-7 flex flex-col gap-4 border-t border-border pt-7 sm:flex-row sm:items-center sm:justify-between">
@@ -69,4 +132,20 @@ export function ResumeSection({ formId, profile }: ResumeSectionProps) {
       </div>
     </section>
   );
+}
+
+function isExtractResumeResponse(value: unknown): value is ExtractResumeResponse {
+  if (!isRecord(value) || typeof value.success !== "boolean") {
+    return false;
+  }
+
+  if (value.success) {
+    return isRecord(value.data);
+  }
+
+  return typeof value.error === "string";
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

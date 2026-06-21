@@ -2,8 +2,7 @@ import { redirect } from "next/navigation";
 import { PostHogIdentify } from "@/components/auth/PostHogIdentify";
 import { Navbar } from "@/components/layout/Navbar";
 import { ProfileAttentionBanner } from "@/components/profile/ProfileAttentionBanner";
-import { ProfileInformationForm } from "@/components/profile/ProfileInformationForm";
-import { ResumeSection } from "@/components/profile/ResumeSection";
+import { ProfileWorkspace } from "@/components/profile/ProfileWorkspace";
 import { createInsforgeServer } from "@/lib/insforge-server";
 import {
   calculateProfileCompletion,
@@ -44,8 +43,7 @@ export default async function ProfilePage() {
           completionPercentage={completion.completionPercentage}
           missingFields={completion.missingFields}
         />
-        <ResumeSection formId={PROFILE_FORM_ID} profile={profile} />
-        <ProfileInformationForm formId={PROFILE_FORM_ID} profile={profile} userEmail={userEmail} />
+        <ProfileWorkspace formId={PROFILE_FORM_ID} profile={profile} userEmail={userEmail} />
       </section>
     </main>
   );
