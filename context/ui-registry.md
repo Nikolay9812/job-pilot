@@ -124,3 +124,23 @@ Last updated: 2026-06-21
 
 **Pattern notes:**
 The protected app navbar is an explicit `variant="app"` on the shared `Navbar`, with active route color and underline only on app pages. The profile page keeps the centered 980px layout and white card stack from `context/designs/profile.png`; `ProfileWorkspace` is the client bridge between resume extraction and the form, while `ProfileInformationForm` owns controlled field state. The resume selector is visually in the resume card but associated to the profile form through the HTML `form` attribute. The Extract from Resume and Generate Resume from Profile buttons use the same primary button pattern, show loading text in place, and share token-colored success/error feedback inside the resume card. Generated resume success updates the current resume link and refreshes the server-loaded profile data.
+
+### Find Jobs Page Full UI
+
+File: app/find-jobs/page.tsx, components/find-jobs/*
+Last updated: 2026-06-21
+
+| Property         | Class                                                                                 |
+| ---------------- | ------------------------------------------------------------------------------------- |
+| Background       | Page `bg-background`; search/filter/table cards `bg-surface`; table header and logo wells `bg-surface-secondary`; success banner `bg-success-lightest` |
+| Border           | Cards/table/filter controls `border border-border`; row separators `border-b border-border`; success banner `border border-success-light`; pagination `border-t border-border` |
+| Border radius    | Cards `rounded-xl`; inputs/buttons/banners/logo wells `rounded-md`; score tracks `rounded-full` |
+| Text - primary   | Company names and active pagination `text-sm font-semibold leading-5 text-text-primary`; primary button `text-base font-semibold leading-6 text-accent-foreground` |
+| Text - secondary | Labels/headers `text-xs` or `text-sm font-semibold uppercase text-text-secondary`; placeholders `placeholder:text-text-muted`; dates and helper copy `text-text-secondary` |
+| Spacing          | Page wrapper `max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8 gap-6`; cards `p-6`; filter bar `px-5 py-3`; table cells `px-8/px-12 py-5`; pagination `px-6 py-4` |
+| Hover state      | Primary button `hover:bg-accent-dark`; filter/pagination controls and table rows `hover:bg-surface-secondary`; focus `focus-visible:outline-accent` |
+| Shadow           | Cards, controls, pagination buttons, and logo wells `shadow-card`; inputs `shadow-sm` |
+| Accent usage     | Active nav and current page `text-accent`; primary Find Jobs button `bg-accent`; active page background `bg-accent-muted`; score fills use `bg-success`, `bg-info-medium`, and `bg-warning` |
+
+**Pattern notes:**
+Find Jobs keeps the full 1440px app canvas from the supplied reference image. Feature 09 is mock UI only: form inputs, filter dropdowns, score sorting, and pagination controls are visual placeholders until later features. The visible table follows `context/designs/find-jobs.png` with Company, Role, Match Score, Salary Est., and Date Found columns; the broader Source badge requirement is deferred because it is not present in the reference screenshot. Match bars use fixed mock width utilities and token fill classes instead of inline styles or raw color utilities.
