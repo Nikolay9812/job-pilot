@@ -11,3 +11,13 @@ export type DashboardStats = {
   totalJobsTrend: DashboardTrend | null;
   avgMatchTrend: DashboardTrend | null;
 };
+
+export type DashboardActivityTone = "info" | "success";
+
+export type DashboardActivityItem = {
+  id: string;
+  title: string;
+  timestamp: string;
+  occurredAt: string;
+  tone: DashboardActivityTone;
+};

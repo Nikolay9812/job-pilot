@@ -7,8 +7,8 @@ Update this file after every completed feature. Any AI agent reading this should
 ## Current Status
 
 **Phase:** Phase 5 - Dashboard
-**Last completed:** 15 Stats Bar - Real Data
-**Next:** 16 Recent Activity - Real Data
+**Last completed:** 16 Recent Activity - Real Data
+**Next:** 17 Analytics Charts - PostHog Data
 
 ---
 
@@ -43,7 +43,7 @@ Update this file after every completed feature. Any AI agent reading this should
 
 - [x] 14 Dashboard Page - Full UI
 - [x] 15 Stats Bar - Real Data
-- [ ] 16 Recent Activity - Real Data
+- [x] 16 Recent Activity - Real Data
 - [ ] 17 Analytics Charts - PostHog Data
 
 ---
@@ -107,6 +107,10 @@ _Add decisions here as they are made during implementation._
 - Feature 15 wires the dashboard stats bar to real InsForge data through `lib/dashboard.ts`, keeping `/dashboard` as the authenticated server-rendered data owner and dashboard components presentational.
 - Feature 15 queries only lightweight columns or head counts, scopes every query by `user_id`, and leaves Recent Activity plus analytics charts mocked until Features 16-17.
 - Feature 15 computes optional week-over-week trend badges for total jobs and average match rate when a previous-week baseline exists; otherwise helpers use honest static copy like "All saved jobs" and "Across all jobs".
+- Feature 16 wires Recent Activity to real InsForge data through `loadRecentDashboardActivity()`, merging completed `agent_runs` with jobs that have populated `company_research`.
+- Feature 16 keeps the dashboard page as the authenticated data owner and keeps `RecentActivity` presentational through `activities` props.
+- Feature 16 sorts activity by the best activity timestamp: `completed_at` for job searches and `updated_at` for company research saves, then displays the latest five entries.
+- Feature 16 leaves analytics charts mocked until Feature 17.
 
 ---
 
@@ -134,3 +138,4 @@ _Add notes here as the build progresses - workarounds, patterns, anything that d
 - Feature 13 polish: De-duplicated company research sources before rendering and before refreshed fallback saves, preventing duplicate React keys when Adzuna source/apply URLs repeat. Updated the dossier UI with a standalone Tech Stack pill row, token-colored icons before section titles, and cleaner bullet rows matching the supplied screenshot direction. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts; `CompanyResearch.tsx` scanned clean for hardcoded hex values and raw Tailwind color utilities.
 - Feature 14 Dashboard Page - Full UI: Replaced the `/dashboard` placeholder with the screenshot-matched mock dashboard: active app navbar, four stat cards, recent activity timeline, Company Research Activity bar chart, Jobs Found Over Time line/area chart, and Match Score Distribution bar chart. Added `components/dashboard/StatCard.tsx`, `StatsBar.tsx`, `RecentActivity.tsx`, `CompanyResearchChart.tsx`, `JobsFoundChart.tsx`, `MatchScoreChart.tsx`, and `AnalyticsCharts.tsx`. Verification: `npm.cmd run lint` passed after setting the local shell PATH to include Node; `tsc --noEmit` passed; touched dashboard/navbar files scanned clean for hardcoded hex values and raw Tailwind color utilities. `npm.cmd run build` could not be run because the required network escalation for Google Fonts was rejected by the environment usage limit.
 - Feature 15 Stats Bar - Real Data: Added `types/dashboard.ts` and `lib/dashboard.ts`; `/dashboard` now loads real user-scoped totals for Total Jobs Found, Avg. Match Rate, Companies Researched, and Jobs This Week, then passes them into `StatsBar`. Verification: `npm.cmd run lint` passed after setting the local shell PATH to include Node; `tsc --noEmit` passed. Production build was not rerun because the previous required network escalation for Google Fonts was rejected by the environment usage limit.
+- Feature 16 Recent Activity - Real Data: Extended `types/dashboard.ts` and `lib/dashboard.ts`; `/dashboard` now loads real user-scoped recent activity and passes it into `RecentActivity`. The feed merges completed job-search runs and company research saves, formats entries as "Found X jobs for [title]" and "Researched [company]", and shows a token-styled empty state when no activity exists. Verification: `npm.cmd run lint` passed after setting the local shell PATH to include Node; `tsc --noEmit` passed; touched dashboard files scanned clean for hardcoded hex values and raw Tailwind color utilities. Production build was not rerun because the previous required network escalation for Google Fonts was rejected by the environment usage limit.
