@@ -34,6 +34,7 @@ const JOB_DETAILS_COLUMNS = [
   "match_reason",
   "matched_skills",
   "missing_skills",
+  "company_research",
   "found_at",
 ].join(",");
 
@@ -63,7 +64,11 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
         <JobInfo job={job} />
         <MatchScore job={job} />
         <JobDescription job={job} />
-        <CompanyResearch company={job.company} />
+        <CompanyResearch
+          jobId={job.id}
+          company={job.company}
+          companyResearch={job.companyResearch}
+        />
         <JobActions company={job.company} applyUrl={applyUrl} />
       </section>
     </main>

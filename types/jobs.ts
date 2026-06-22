@@ -42,7 +42,20 @@ export type JobDetails = {
   matchReason: string | null;
   matchedSkills: string[];
   missingSkills: string[];
+  companyResearch: CompanyResearchDossier | null;
   foundAt: string;
+};
+
+export type CompanyResearchDossier = {
+  companyOverview: string;
+  techStack: string[];
+  culture: string[];
+  whyThisRole: string;
+  yourEdge: string[];
+  gapsToAddress: string[];
+  smartQuestions: string[];
+  interviewPrep: string[];
+  sources: string[];
 };
 
 export type JobsPageInfo = {
@@ -75,6 +88,15 @@ export type FindJobsResponse =
         runId: string;
         jobsFound: number;
         strongMatches: number;
+      };
+    }
+  | { success: false; error: string };
+
+export type ResearchCompanyResponse =
+  | {
+      success: true;
+      data: {
+        dossier: CompanyResearchDossier;
       };
     }
   | { success: false; error: string };

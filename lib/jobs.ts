@@ -1,5 +1,6 @@
 import { MATCH_THRESHOLD } from "@/lib/utils";
 import type {
+  CompanyResearchDossier,
   JobDetails,
   JobType,
   JobListItem,
@@ -90,6 +91,7 @@ export function parseJobDetails(value: unknown): JobDetails | null {
     matchReason: readNullableString(value.match_reason),
     matchedSkills: readStringArray(value.matched_skills),
     missingSkills: readStringArray(value.missing_skills),
+    companyResearch: parseCompanyResearch(value.company_research),
     foundAt,
   };
 }
@@ -272,6 +274,37 @@ function readStringArray(value: unknown): string[] {
   }
 
   return value.map(readString).filter((item) => item.length > 0);
+}
+
+function parseCompanyResearch(value: unknown): CompanyResearchDossier | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const dossier: CompanyResearchDossier = {
+    companyOverview: readString(value.companyOverview),
+    techStack: readStringArray(value.techStack),
+    culture: readStringArray(value.culture),
+    whyThisRole: readString(value.whyThisRole),
+    yourEdge: readStringArray(value.yourEdge),
+    gapsToAddress: readStringArray(value.gapsToAddress),
+    smartQuestions: readStringArray(value.smartQuestions),
+    interviewPrep: readStringArray(value.interviewPrep),
+    sources: readStringArray(value.sources),
+  };
+
+  const hasContent =
+    dossier.companyOverview.length > 0 ||
+    dossier.whyThisRole.length > 0 ||
+    dossier.techStack.length > 0 ||
+    dossier.culture.length > 0 ||
+    dossier.yourEdge.length > 0 ||
+    dossier.gapsToAddress.length > 0 ||
+    dossier.smartQuestions.length > 0 ||
+    dossier.interviewPrep.length > 0 ||
+    dossier.sources.length > 0;
+
+  return hasContent ? dossier : null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

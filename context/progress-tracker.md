@@ -7,8 +7,8 @@ Update this file after every completed feature. Any AI agent reading this should
 ## Current Status
 
 **Phase:** Phase 4 - Job Details Page
-**Last completed:** 12 Job Details Page - Full UI
-**Next:** 13 Company Research Agent
+**Last completed:** 13 Company Research Agent
+**Next:** 14 Dashboard Page - Full UI
 
 ---
 
@@ -37,7 +37,7 @@ Update this file after every completed feature. Any AI agent reading this should
 ### Phase 4 - Job Details Page
 
 - [x] 12 Job Details Page - Full UI
-- [ ] 13 Company Research Agent
+- [x] 13 Company Research Agent
 
 ### Phase 5 - Dashboard
 
@@ -97,6 +97,10 @@ _Add decisions here as they are made during implementation._
 - Feature 12 keeps company research execution out of scope. The Company Research card renders the empty state and token-styled button shown in the design; the Browserbase/GPT dossier flow remains Feature 13.
 - Feature 12 updates the shared app navbar to match the job details design: text-only nav items, active link via `text-accent`, a user icon, and a sign-out control in the header.
 - Feature 12 links Find Jobs table company/title cells to `/find-jobs/[id]` so saved jobs can be opened through the normal list workflow.
+- Feature 13 adds `POST /api/agent/research` as the authenticated company research endpoint. The route validates `jobId`, scopes the job by both `id` and `user_id`, requires the current user's complete profile, saves `jobs.company_research`, revalidates `/find-jobs/[id]`, and fires `company_researched` only after the save succeeds.
+- Feature 13 keeps Browserbase and Stagehand server-only behind `lib/browserbase.ts`, `lib/stagehand.ts`, and `agent/research.ts`. The agent resolves Adzuna redirects with native server `fetch`, runs one Browserbase/Stagehand session, extracts the homepage plus up to three internal pages, closes Stagehand in `finally`, and logs thin/failing research to `agent_logs` with `job_id` and nullable `run_id`.
+- Feature 13 synthesizes the exact 9-field `CompanyResearchDossier` with GPT-4o JSON output and normalizes/falls back to job/profile context so a complete dossier is still saved when browser research or synthesis is thin.
+- Feature 13 turns `CompanyResearch` into the focused client action surface for the job details page. Existing saved dossiers render on page load, the button refreshes and overwrites saved research, and all visible styling uses project token classes only.
 
 ---
 
@@ -120,3 +124,5 @@ _Add notes here as the build progresses - workarounds, patterns, anything that d
 - Feature 10 Adzuna Job Discovery: Added `lib/utils.ts`, `types/jobs.ts`, `lib/adzuna.ts`, `agent/matcher.ts`, `agent/adzuna.ts`, and `app/api/agent/find/route.ts`; wired `components/find-jobs/SearchControls.tsx` to submit real searches, create runs, call Adzuna, score jobs with GPT-4o, save jobs and logs to InsForge, and fire PostHog search/job events. Verification: `npm.cmd run lint` passed after setting the local shell PATH to include Node; `npm.cmd run build` passed after allowing network access for Google Fonts.
 - Feature 11 Filter + Sort + Pagination: Added real InsForge-backed `/find-jobs` list querying, typed list/query helpers in `lib/jobs.ts` and `types/jobs.ts`, URL-driven filter/search/sort controls, real jobs table rows with empty/error states, 20-per-page pagination links, and automatic list refresh after a successful Adzuna search. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts.
 - Feature 12 Job Details Page - Full UI: Added `/find-jobs/[id]`, `components/job-details/*`, full job detail parsing, real user-scoped InsForge job loading, header/info cards/match reasoning/skills/job description/company research empty state/apply CTA, app navbar sign-out UI, and Find Jobs table links into detail pages. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts.
+- Feature 13 Company Research Agent: Added `@browserbasehq/sdk`, `@browserbasehq/stagehand`, and `zod`; implemented server-only Browserbase/Stagehand helpers, `agent/research.ts`, `POST /api/agent/research`, typed/parsing support for `CompanyResearchDossier`, and the real job-details company research UI with loading/error/refresh states and persisted dossier rendering. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts; touched UI files scanned clean for hardcoded hex values and raw Tailwind color utilities. Note: `npm install` reported 19 advisories (17 low, 2 moderate); no audit fix was applied because it is outside this feature scope.
+- Feature 13 polish: De-duplicated company research sources before rendering and before refreshed fallback saves, preventing duplicate React keys when Adzuna source/apply URLs repeat. Updated the dossier UI with a standalone Tech Stack pill row, token-colored icons before section titles, and cleaner bullet rows matching the supplied screenshot direction. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts; `CompanyResearch.tsx` scanned clean for hardcoded hex values and raw Tailwind color utilities.
