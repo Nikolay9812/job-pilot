@@ -1,9 +1,13 @@
 import { createInsforgeServer } from "@/lib/insforge-server";
 import { formatDateFound } from "@/lib/jobs";
+import { queryPostHogHogql } from "@/lib/posthog-server";
 import type {
   DashboardActivityItem,
   DashboardActivityTone,
+  DashboardAnalyticsData,
+  DashboardScoreBucket,
   DashboardStats,
+  DashboardTimeSeriesPoint,
   DashboardTrend,
 } from "@/types/dashboard";
 
@@ -28,6 +32,8 @@ type CompanyResearchActivityRow = {
   updated_at: string | null;
   created_at: string | null;
 };
+
+type PostHogEventName = "job_found" | "company_researched";
 
 type InsforgeServer = Awaited<ReturnType<typeof createInsforgeServer>>;
 
@@ -98,6 +104,39 @@ export async function loadRecentDashboardActivity(userId: string): Promise<Dashb
   } catch (error) {
     console.error("[dashboard/activity]", error);
     return [];
+  }
+}
+
+export async function loadDashboardAnalytics(userId: string): Promise<DashboardAnalyticsData> {
+  const now = new Date();
+
+  try {
+    const [jobFoundResponse, companyResearchResponse] = await Promise.all([
+      queryPostHogHogql(
+        buildPostHogEventsQuery("job_found", userId, 30),
+        "JobPilot dashboard job_found events",
+      ),
+      queryPostHogHogql(
+        buildPostHogEventsQuery("company_researched", userId, 7),
+        "JobPilot dashboard company_researched events",
+      ),
+    ]);
+
+    if (!jobFoundResponse || !companyResearchResponse) {
+      return buildEmptyDashboardAnalytics(now);
+    }
+
+    const jobFoundRows = readHogqlResultRows(jobFoundResponse);
+    const companyResearchRows = readHogqlResultRows(companyResearchResponse);
+
+    return {
+      jobsFoundData: buildTimeSeries(jobFoundRows, 30, now, formatShortDateLabel),
+      matchScoreData: buildMatchScoreBuckets(jobFoundRows),
+      companyResearchData: buildTimeSeries(companyResearchRows, 7, now, formatWeekdayLabel),
+    };
+  } catch (error) {
+    console.error("[dashboard/analytics]", error);
+    return buildEmptyDashboardAnalytics(now);
   }
 }
 
@@ -336,6 +375,166 @@ function readNullableNumber(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? Math.round(value) : null;
 }
 
+function readHogqlResultRows(value: unknown): Record<string, unknown>[] {
+  if (!isRecord(value) || !Array.isArray(value.results)) {
+    return [];
+  }
+
+  const columns = Array.isArray(value.columns) ? value.columns.map(readString) : [];
+
+  return value.results
+    .map((row) => normalizeHogqlResultRow(row, columns))
+    .filter((row): row is Record<string, unknown> => row !== null);
+}
+
+function normalizeHogqlResultRow(
+  row: unknown,
+  columns: string[],
+): Record<string, unknown> | null {
+  if (isRecord(row)) {
+    return row;
+  }
+
+  if (!Array.isArray(row) || columns.length === 0) {
+    return null;
+  }
+
+  const normalized: Record<string, unknown> = {};
+
+  columns.forEach((column, index) => {
+    if (column) {
+      normalized[column] = row[index];
+    }
+  });
+
+  return normalized;
+}
+
+function buildPostHogEventsQuery(
+  eventName: PostHogEventName,
+  userId: string,
+  days: number,
+): string {
+  return `
+SELECT timestamp, properties
+FROM events
+WHERE event = '${eventName}'
+  AND distinct_id = '${escapeHogqlString(userId)}'
+  AND timestamp >= now() - INTERVAL ${days} DAY
+ORDER BY timestamp ASC
+LIMIT 10000`;
+}
+
+function buildEmptyDashboardAnalytics(now: Date): DashboardAnalyticsData {
+  return {
+    jobsFoundData: buildTimeSeries([], 30, now, formatShortDateLabel),
+    matchScoreData: buildMatchScoreBuckets([]),
+    companyResearchData: buildTimeSeries([], 7, now, formatWeekdayLabel),
+  };
+}
+
+function buildTimeSeries(
+  rows: Record<string, unknown>[],
+  days: number,
+  now: Date,
+  formatLabel: (date: Date) => string,
+): DashboardTimeSeriesPoint[] {
+  const countsByDate = new Map<string, number>();
+  const range = buildDateRange(days, now, formatLabel);
+
+  range.forEach((point) => {
+    countsByDate.set(point.date, 0);
+  });
+
+  rows.forEach((row) => {
+    const timestamp = readNullableString(row.timestamp);
+    const date = timestamp ? toDateKey(new Date(timestamp)) : null;
+
+    if (!date || !countsByDate.has(date)) {
+      return;
+    }
+
+    countsByDate.set(date, (countsByDate.get(date) ?? 0) + 1);
+  });
+
+  return range.map((point) => ({
+    ...point,
+    value: countsByDate.get(point.date) ?? 0,
+  }));
+}
+
+function buildDateRange(
+  days: number,
+  now: Date,
+  formatLabel: (date: Date) => string,
+): DashboardTimeSeriesPoint[] {
+  return Array.from({ length: days }, (_, index) => {
+    const date = daysAgo(now, days - index - 1);
+
+    return {
+      date: toDateKey(date),
+      label: formatLabel(date),
+      value: 0,
+    };
+  });
+}
+
+function buildMatchScoreBuckets(rows: Record<string, unknown>[]): DashboardScoreBucket[] {
+  const buckets = [
+    { label: "50-60%", min: 50, max: 60, value: 0 },
+    { label: "60-70%", min: 60, max: 70, value: 0 },
+    { label: "70-80%", min: 70, max: 80, value: 0 },
+    { label: "80-90%", min: 80, max: 90, value: 0 },
+    { label: "90-100%", min: 90, max: 101, value: 0 },
+  ];
+
+  rows.forEach((row) => {
+    const score = readMatchScoreFromProperties(row.properties);
+
+    if (score === null) {
+      return;
+    }
+
+    const bucket = buckets.find((candidate) => score >= candidate.min && score < candidate.max);
+
+    if (bucket) {
+      bucket.value += 1;
+    }
+  });
+
+  return buckets.map((bucket) => ({
+    label: bucket.label,
+    value: bucket.value,
+  }));
+}
+
+function readMatchScoreFromProperties(value: unknown): number | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const score = readNumberLike(value.matchScore);
+
+  if (score === null) {
+    return null;
+  }
+
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+function readNumberLike(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 function readTimestamp(value: string): number {
   const timestamp = new Date(value).getTime();
   return Number.isFinite(timestamp) ? timestamp : 0;
@@ -350,6 +549,26 @@ function daysAgo(date: Date, days: number): Date {
   const nextDate = new Date(date);
   nextDate.setDate(nextDate.getDate() - days);
   return nextDate;
+}
+
+function toDateKey(date: Date): string {
+  if (!Number.isFinite(date.getTime())) {
+    return "";
+  }
+
+  return date.toISOString().slice(0, 10);
+}
+
+function formatShortDateLabel(date: Date): string {
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function formatWeekdayLabel(date: Date): string {
+  return date.toLocaleDateString("en-US", { weekday: "short" });
+}
+
+function escapeHogqlString(value: string): string {
+  return value.replace(/'/g, "''");
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

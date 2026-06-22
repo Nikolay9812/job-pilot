@@ -29,6 +29,12 @@ type ServerEventProperties = {
   company_researched: CompanyResearchedProperties;
 };
 
+type PostHogQueryConfig = {
+  apiHost: string;
+  projectId: string;
+  personalApiKey: string;
+};
+
 export function createPostHogServer(): PostHog {
   return new PostHog(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
     host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
@@ -56,4 +62,53 @@ export async function capturePostHogServerEvent<EventName extends keyof ServerEv
   } finally {
     await posthog.shutdown();
   }
+}
+
+export async function queryPostHogHogql(query: string, name: string): Promise<unknown | null> {
+  const config = readPostHogQueryConfig();
+
+  if (!config) {
+    return null;
+  }
+
+  const response = await fetch(
+    `${config.apiHost}/api/projects/${encodeURIComponent(config.projectId)}/query/`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${config.personalApiKey}`,
+      },
+      body: JSON.stringify({
+        query: {
+          kind: "HogQLQuery",
+          query,
+        },
+        name,
+      }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`PostHog query failed with status ${response.status}`);
+  }
+
+  const data: unknown = await response.json();
+  return data;
+}
+
+function readPostHogQueryConfig(): PostHogQueryConfig | null {
+  const apiHost = process.env.POSTHOG_API_HOST;
+  const projectId = process.env.POSTHOG_PROJECT_ID;
+  const personalApiKey = process.env.POSTHOG_PERSONAL_API_KEY;
+
+  if (!apiHost || !projectId || !personalApiKey) {
+    return null;
+  }
+
+  return {
+    apiHost: apiHost.replace(/\/+$/, ""),
+    projectId,
+    personalApiKey,
+  };
 }

@@ -600,6 +600,84 @@ await posthog.shutdown(); // required — ensures event is sent
 
 ---
 
+### Query API Setup (Server)
+
+Dashboard analytics use PostHog's private Query API with HogQL. These calls are server-only and require a personal API key with `query:read` scope.
+
+```typescript
+const response = await fetch(
+  `${process.env.POSTHOG_API_HOST}/api/projects/${process.env.POSTHOG_PROJECT_ID}/query/`,
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.POSTHOG_PERSONAL_API_KEY}`,
+    },
+    body: JSON.stringify({
+      query: {
+        kind: "HogQLQuery",
+        query:
+          "SELECT timestamp, properties FROM events WHERE event = 'job_found' LIMIT 10000",
+      },
+      name: "JobPilot dashboard job_found events",
+    }),
+  },
+);
+```
+
+**Query env vars:**
+
+| Variable                   | Purpose                                      |
+| -------------------------- | -------------------------------------------- |
+| `POSTHOG_API_HOST`         | Private PostHog host, e.g. `https://us.posthog.com` or `https://eu.posthog.com` |
+| `POSTHOG_PROJECT_ID`       | PostHog project id used in the Query API URL |
+| `POSTHOG_PERSONAL_API_KEY` | Server-only personal API key with `query:read` scope |
+
+**Query rules:**
+
+- Never expose `POSTHOG_PERSONAL_API_KEY` to the browser or prefix it with `NEXT_PUBLIC_`
+- If query env vars are missing, dashboard analytics must render empty states instead of crashing
+
+---
+
+## Recharts
+
+**Check first:** If a Recharts skill or MCP server is available, use it before implementing chart work. This project uses Recharts only for dashboard analytics.
+
+### Dashboard Charts
+
+```typescript
+"use client";
+
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+} from "recharts";
+
+<ResponsiveContainer width="100%" height="100%">
+  <BarChart data={data}>
+    <CartesianGrid stroke="var(--color-border)" strokeDasharray="4 4" vertical={false} />
+    <XAxis dataKey="label" axisLine={false} tickLine={false} />
+    <YAxis allowDecimals={false} axisLine={false} tickLine={false} />
+    <Bar dataKey="value" fill="var(--color-success)" radius={[4, 4, 0, 0]} />
+  </BarChart>
+</ResponsiveContainer>;
+```
+
+**Rules:**
+
+- Recharts components must live in Client Components.
+- Keep dashboard cards token-styled with `bg-surface`, `border-border`, `rounded-xl`, `p-6`, and `shadow-card`.
+- Use CSS variables for chart colors, e.g. `var(--color-accent)`, never hardcoded hex values.
+- Show a token-styled empty state instead of rendering a blank chart when all values are zero.
+- Keep `react-is` installed at the same version as React.
+
+---
+
 ## @react-pdf/renderer
 
 **Check first:** Check AGENTS.md for an installed react-pdf skill. PDF generation APIs can differ from general training knowledge.

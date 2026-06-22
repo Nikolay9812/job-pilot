@@ -1,80 +1,52 @@
-const bars = [
-  { label: "50-60%", value: 5 },
-  { label: "60-70%", value: 15 },
-  { label: "70-80%", value: 45 },
-  { label: "80-90%", value: 85 },
-  { label: "90-100%", value: 35 },
-];
+"use client";
 
-const chartHeight = 250;
-const chartTop = 24;
-const chartLeft = 54;
-const chartWidth = 330;
-const barWidth = 34;
-const slotWidth = chartWidth / bars.length;
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+} from "recharts";
 
-export function MatchScoreChart() {
+import { ChartEmptyState } from "@/components/dashboard/ChartEmptyState";
+import type { DashboardScoreBucket } from "@/types/dashboard";
+
+type MatchScoreChartProps = {
+  data: DashboardScoreBucket[];
+};
+
+export function MatchScoreChart({ data }: MatchScoreChartProps) {
+  const hasData = data.some((bucket) => bucket.value > 0);
+
   return (
     <section className="rounded-xl border border-border bg-surface p-6 shadow-card">
       <h2 className="text-xl font-semibold leading-7 text-text-primary">Match Score Distribution</h2>
-      <svg
-        viewBox="0 0 440 340"
-        role="img"
-        aria-label="Mock match score distribution by percentage range"
-        className="mt-8 h-[340px] w-full"
-      >
-        {[100, 75, 50, 25, 0].map((tick) => {
-          const y = chartTop + chartHeight - (tick / 100) * chartHeight;
-
-          return (
-            <g key={tick}>
-              <line
-                x1={chartLeft}
-                x2={chartLeft + chartWidth}
-                y1={y}
-                y2={y}
-                stroke="var(--color-border)"
-                strokeDasharray="4 4"
+      {hasData ? (
+        <div className="mt-8 h-[340px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={data} margin={{ top: 24, right: 12, left: 0, bottom: 0 }}>
+              <CartesianGrid stroke="var(--color-border)" strokeDasharray="4 4" vertical={false} />
+              <XAxis
+                dataKey="label"
+                axisLine={false}
+                tickLine={false}
+                tick={{ className: "fill-chart-axis text-xs font-medium" }}
               />
-              <text
-                x={chartLeft - 10}
-                y={y + 5}
-                textAnchor="end"
-                className="fill-chart-axis text-xs font-normal"
-              >
-                {tick}
-              </text>
-            </g>
-          );
-        })}
-
-        {bars.map((bar, index) => {
-          const barHeight = (bar.value / 100) * chartHeight;
-          const x = chartLeft + index * slotWidth + (slotWidth - barWidth) / 2;
-          const y = chartTop + chartHeight - barHeight;
-
-          return (
-            <g key={bar.label}>
-              <rect
-                x={x}
-                y={y}
-                width={barWidth}
-                height={barHeight}
-                rx="4"
-                fill="var(--color-success)"
+              <YAxis
+                allowDecimals={false}
+                axisLine={false}
+                tickLine={false}
+                tick={{ className: "fill-chart-axis text-xs font-normal" }}
+                width={42}
               />
-              <text
-                x={x + barWidth / 2}
-                y={chartTop + chartHeight + 34}
-                textAnchor="middle"
-                className="fill-chart-axis text-xs font-medium"
-              >
-                {bar.label}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
+              <Bar dataKey="value" fill="var(--color-success)" radius={[4, 4, 0, 0]} barSize={34} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      ) : (
+        <ChartEmptyState message="Match score distribution will appear after matched jobs are saved." />
+      )}
     </section>
   );
 }

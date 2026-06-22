@@ -7,8 +7,8 @@ Update this file after every completed feature. Any AI agent reading this should
 ## Current Status
 
 **Phase:** Phase 5 - Dashboard
-**Last completed:** 16 Recent Activity - Real Data
-**Next:** 17 Analytics Charts - PostHog Data
+**Last completed:** 17 Analytics Charts - PostHog Data
+**Next:** All planned features complete
 
 ---
 
@@ -44,7 +44,7 @@ Update this file after every completed feature. Any AI agent reading this should
 - [x] 14 Dashboard Page - Full UI
 - [x] 15 Stats Bar - Real Data
 - [x] 16 Recent Activity - Real Data
-- [ ] 17 Analytics Charts - PostHog Data
+- [x] 17 Analytics Charts - PostHog Data
 
 ---
 
@@ -111,6 +111,11 @@ _Add decisions here as they are made during implementation._
 - Feature 16 keeps the dashboard page as the authenticated data owner and keeps `RecentActivity` presentational through `activities` props.
 - Feature 16 sorts activity by the best activity timestamp: `completed_at` for job searches and `updated_at` for company research saves, then displays the latest five entries.
 - Feature 16 leaves analytics charts mocked until Feature 17.
+- Feature 17 uses PostHog's private Query API with server-only `POSTHOG_API_HOST`, `POSTHOG_PROJECT_ID`, and `POSTHOG_PERSONAL_API_KEY` env vars. If those vars are missing or queries fail, dashboard charts render zero-data empty states instead of crashing.
+- Feature 17 keeps the dashboard page as the authenticated data owner and loads stats, recent activity, and PostHog analytics in parallel.
+- Feature 17 queries raw `job_found` and `company_researched` PostHog events for the current user `distinct_id`, then groups events locally for Jobs Found Over Time, Match Score Distribution, and Company Research Activity.
+- Feature 17 renders dashboard analytics with `recharts` Client Components and keeps all chart colors token-based through CSS variables.
+- Feature 17 installs `react-is@19.2.4` as the Recharts companion dependency so it matches the installed React version.
 
 ---
 
@@ -139,3 +144,4 @@ _Add notes here as the build progresses - workarounds, patterns, anything that d
 - Feature 14 Dashboard Page - Full UI: Replaced the `/dashboard` placeholder with the screenshot-matched mock dashboard: active app navbar, four stat cards, recent activity timeline, Company Research Activity bar chart, Jobs Found Over Time line/area chart, and Match Score Distribution bar chart. Added `components/dashboard/StatCard.tsx`, `StatsBar.tsx`, `RecentActivity.tsx`, `CompanyResearchChart.tsx`, `JobsFoundChart.tsx`, `MatchScoreChart.tsx`, and `AnalyticsCharts.tsx`. Verification: `npm.cmd run lint` passed after setting the local shell PATH to include Node; `tsc --noEmit` passed; touched dashboard/navbar files scanned clean for hardcoded hex values and raw Tailwind color utilities. `npm.cmd run build` could not be run because the required network escalation for Google Fonts was rejected by the environment usage limit.
 - Feature 15 Stats Bar - Real Data: Added `types/dashboard.ts` and `lib/dashboard.ts`; `/dashboard` now loads real user-scoped totals for Total Jobs Found, Avg. Match Rate, Companies Researched, and Jobs This Week, then passes them into `StatsBar`. Verification: `npm.cmd run lint` passed after setting the local shell PATH to include Node; `tsc --noEmit` passed. Production build was not rerun because the previous required network escalation for Google Fonts was rejected by the environment usage limit.
 - Feature 16 Recent Activity - Real Data: Extended `types/dashboard.ts` and `lib/dashboard.ts`; `/dashboard` now loads real user-scoped recent activity and passes it into `RecentActivity`. The feed merges completed job-search runs and company research saves, formats entries as "Found X jobs for [title]" and "Researched [company]", and shows a token-styled empty state when no activity exists. Verification: `npm.cmd run lint` passed after setting the local shell PATH to include Node; `tsc --noEmit` passed; touched dashboard files scanned clean for hardcoded hex values and raw Tailwind color utilities. Production build was not rerun because the previous required network escalation for Google Fonts was rejected by the environment usage limit.
+- Feature 17 Analytics Charts - PostHog Data: Added `recharts` and `react-is`, extended dashboard analytics types, added PostHog HogQL query support, and replaced the three mocked SVG dashboard charts with real PostHog-backed Recharts cards plus token-styled empty states. Updated PostHog/Recharts project docs and the dependency/env allowlists. Verification: `npm.cmd run lint` passed; `tsc --noEmit` passed; `npm.cmd run build` passed with network escalation for Google Fonts; touched dashboard files scanned clean for hardcoded hex values and raw Tailwind color utilities.

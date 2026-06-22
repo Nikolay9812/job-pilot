@@ -21,3 +21,20 @@ export type DashboardActivityItem = {
   occurredAt: string;
   tone: DashboardActivityTone;
 };
+
+export type DashboardTimeSeriesPoint = {
+  date: string;
+  label: string;
+  value: number;
+};
+
+export type DashboardScoreBucket = {
+  label: string;
+  value: number;
+};
+
+export type DashboardAnalyticsData = {
+  jobsFoundData: DashboardTimeSeriesPoint[];
+  matchScoreData: DashboardScoreBucket[];
+  companyResearchData: DashboardTimeSeriesPoint[];
+};

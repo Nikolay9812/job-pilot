@@ -5,7 +5,11 @@ import { CompanyResearchChart } from "@/components/dashboard/CompanyResearchChar
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { StatsBar } from "@/components/dashboard/StatsBar";
 import { Navbar } from "@/components/layout/Navbar";
-import { loadDashboardStats, loadRecentDashboardActivity } from "@/lib/dashboard";
+import {
+  loadDashboardAnalytics,
+  loadDashboardStats,
+  loadRecentDashboardActivity,
+} from "@/lib/dashboard";
 import { createInsforgeServer } from "@/lib/insforge-server";
 
 export default async function DashboardPage() {
@@ -16,9 +20,10 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  const [stats, activities] = await Promise.all([
+  const [stats, activities, analytics] = await Promise.all([
     loadDashboardStats(data.user.id),
     loadRecentDashboardActivity(data.user.id),
+    loadDashboardAnalytics(data.user.id),
   ]);
 
   return (
@@ -29,9 +34,12 @@ export default async function DashboardPage() {
         <StatsBar stats={stats} />
         <div className="grid gap-6 lg:grid-cols-2">
           <RecentActivity activities={activities} />
-          <CompanyResearchChart />
+          <CompanyResearchChart data={analytics.companyResearchData} />
         </div>
-        <AnalyticsCharts />
+        <AnalyticsCharts
+          jobsFoundData={analytics.jobsFoundData}
+          matchScoreData={analytics.matchScoreData}
+        />
       </section>
     </main>
   );
