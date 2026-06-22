@@ -7,8 +7,8 @@ Update this file after every completed feature. Any AI agent reading this should
 ## Current Status
 
 **Phase:** Phase 5 - Dashboard
-**Last completed:** 14 Dashboard Page - Full UI
-**Next:** 15 Stats Bar - Real Data
+**Last completed:** 15 Stats Bar - Real Data
+**Next:** 16 Recent Activity - Real Data
 
 ---
 
@@ -42,7 +42,7 @@ Update this file after every completed feature. Any AI agent reading this should
 ### Phase 5 - Dashboard
 
 - [x] 14 Dashboard Page - Full UI
-- [ ] 15 Stats Bar - Real Data
+- [x] 15 Stats Bar - Real Data
 - [ ] 16 Recent Activity - Real Data
 - [ ] 17 Analytics Charts - PostHog Data
 
@@ -104,6 +104,9 @@ _Add decisions here as they are made during implementation._
 - Feature 14 replaces the `/dashboard` placeholder with the full mock dashboard UI from `context/designs/dashboard.png`, using `components/dashboard/*` for stat cards, recent activity, and three token-colored SVG chart cards.
 - Feature 14 keeps dashboard data mocked only. Real InsForge stats, real activity, and PostHog chart data remain deferred to Features 15-17.
 - Feature 14 updates the shared app navbar to match the dashboard reference: nav items include lucide icons, active state uses `border-b-2 border-accent text-accent`, and inactive items remain token-colored text links.
+- Feature 15 wires the dashboard stats bar to real InsForge data through `lib/dashboard.ts`, keeping `/dashboard` as the authenticated server-rendered data owner and dashboard components presentational.
+- Feature 15 queries only lightweight columns or head counts, scopes every query by `user_id`, and leaves Recent Activity plus analytics charts mocked until Features 16-17.
+- Feature 15 computes optional week-over-week trend badges for total jobs and average match rate when a previous-week baseline exists; otherwise helpers use honest static copy like "All saved jobs" and "Across all jobs".
 
 ---
 
@@ -130,3 +133,4 @@ _Add notes here as the build progresses - workarounds, patterns, anything that d
 - Feature 13 Company Research Agent: Added `@browserbasehq/sdk`, `@browserbasehq/stagehand`, and `zod`; implemented server-only Browserbase/Stagehand helpers, `agent/research.ts`, `POST /api/agent/research`, typed/parsing support for `CompanyResearchDossier`, and the real job-details company research UI with loading/error/refresh states and persisted dossier rendering. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts; touched UI files scanned clean for hardcoded hex values and raw Tailwind color utilities. Note: `npm install` reported 19 advisories (17 low, 2 moderate); no audit fix was applied because it is outside this feature scope.
 - Feature 13 polish: De-duplicated company research sources before rendering and before refreshed fallback saves, preventing duplicate React keys when Adzuna source/apply URLs repeat. Updated the dossier UI with a standalone Tech Stack pill row, token-colored icons before section titles, and cleaner bullet rows matching the supplied screenshot direction. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts; `CompanyResearch.tsx` scanned clean for hardcoded hex values and raw Tailwind color utilities.
 - Feature 14 Dashboard Page - Full UI: Replaced the `/dashboard` placeholder with the screenshot-matched mock dashboard: active app navbar, four stat cards, recent activity timeline, Company Research Activity bar chart, Jobs Found Over Time line/area chart, and Match Score Distribution bar chart. Added `components/dashboard/StatCard.tsx`, `StatsBar.tsx`, `RecentActivity.tsx`, `CompanyResearchChart.tsx`, `JobsFoundChart.tsx`, `MatchScoreChart.tsx`, and `AnalyticsCharts.tsx`. Verification: `npm.cmd run lint` passed after setting the local shell PATH to include Node; `tsc --noEmit` passed; touched dashboard/navbar files scanned clean for hardcoded hex values and raw Tailwind color utilities. `npm.cmd run build` could not be run because the required network escalation for Google Fonts was rejected by the environment usage limit.
+- Feature 15 Stats Bar - Real Data: Added `types/dashboard.ts` and `lib/dashboard.ts`; `/dashboard` now loads real user-scoped totals for Total Jobs Found, Avg. Match Rate, Companies Researched, and Jobs This Week, then passes them into `StatsBar`. Verification: `npm.cmd run lint` passed after setting the local shell PATH to include Node; `tsc --noEmit` passed. Production build was not rerun because the previous required network escalation for Google Fonts was rejected by the environment usage limit.
