@@ -1,11 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
-import { LayoutGrid, Search, User } from "lucide-react";
+import { CircleUserRound } from "lucide-react";
+import { NavbarSignOutButton } from "@/components/layout/NavbarSignOutButton";
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard", Icon: LayoutGrid },
-  { href: "/find-jobs", label: "Find Jobs", Icon: Search },
-  { href: "/profile", label: "Profile", Icon: User },
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/find-jobs", label: "Find Jobs" },
+  { href: "/profile", label: "Profile" },
 ];
 
 type NavbarProps = {
@@ -28,26 +29,27 @@ export function Navbar({ activeHref, variant = "marketing" }: NavbarProps) {
             />
           </Link>
 
-          <nav className="flex h-full items-center gap-8">
-            {navItems.map(({ href, label, Icon }) => {
-              const isActive = href === activeHref;
+          <div className="flex items-center gap-8">
+            <nav className="flex items-center gap-8">
+              {navItems.map(({ href, label }) => {
+                const isActive = href === activeHref;
 
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  className={`inline-flex h-full items-center gap-2 border-b-2 text-sm font-medium leading-5 transition-colors ${
-                    isActive
-                      ? "border-accent text-accent"
-                      : "border-transparent text-text-secondary hover:text-text-primary"
-                  }`}
-                >
-                  <Icon className="h-4 w-4" aria-hidden="true" />
-                  {label}
-                </Link>
-              );
-            })}
-          </nav>
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={`text-sm font-semibold leading-5 transition-colors ${
+                      isActive ? "text-accent" : "text-text-secondary hover:text-text-primary"
+                    }`}
+                  >
+                    {label}
+                  </Link>
+                );
+              })}
+            </nav>
+            <CircleUserRound className="h-6 w-6 text-text-muted" aria-hidden="true" />
+            <NavbarSignOutButton />
+          </div>
         </div>
       </header>
     );

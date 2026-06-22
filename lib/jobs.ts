@@ -1,5 +1,7 @@
 import { MATCH_THRESHOLD } from "@/lib/utils";
 import type {
+  JobDetails,
+  JobType,
   JobListItem,
   JobListQuery,
   JobsMatchFilter,
@@ -54,6 +56,44 @@ export function parseJobListItems(value: unknown): JobListItem[] {
     .filter((job): job is JobListItem => job !== null);
 }
 
+export function parseJobDetails(value: unknown): JobDetails | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const id = readString(value.id);
+  const title = readString(value.title);
+  const company = readString(value.company);
+  const foundAt = readString(value.found_at);
+  const matchScore = readNumber(value.match_score);
+
+  if (!id || !title || !company || !foundAt || matchScore === null) {
+    return null;
+  }
+
+  return {
+    id,
+    title,
+    company,
+    salary: readNullableString(value.salary),
+    location: readNullableString(value.location),
+    jobType: readJobType(value.job_type),
+    sourceUrl: readNullableString(value.source_url),
+    externalApplyUrl: readNullableString(value.external_apply_url),
+    aboutRole: readNullableString(value.about_role),
+    responsibilities: readStringArray(value.responsibilities),
+    requirements: readStringArray(value.requirements),
+    niceToHave: readStringArray(value.nice_to_have),
+    benefits: readStringArray(value.benefits),
+    aboutCompany: readNullableString(value.about_company),
+    matchScore,
+    matchReason: readNullableString(value.match_reason),
+    matchedSkills: readStringArray(value.matched_skills),
+    missingSkills: readStringArray(value.missing_skills),
+    foundAt,
+  };
+}
+
 export function buildJobsPageInfo(totalResults: number, currentPage: number): JobsPageInfo {
   const totalPages = Math.max(1, Math.ceil(totalResults / JOBS_PAGE_SIZE));
   const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
@@ -68,6 +108,22 @@ export function buildJobsPageInfo(totalResults: number, currentPage: number): Jo
     fromResult,
     toResult,
   };
+}
+
+export function formatJobType(value: JobType | null): string {
+  if (value === "fulltime") {
+    return "Full-time";
+  }
+
+  if (value === "parttime") {
+    return "Part-time";
+  }
+
+  if (value === "contract") {
+    return "Contract";
+  }
+
+  return "-";
 }
 
 export function formatDateFound(value: string): string {
@@ -200,6 +256,22 @@ function readNumber(value: unknown): number | null {
 
 function readJobSource(value: unknown): JobSource {
   return value === "url" ? "url" : "search";
+}
+
+function readJobType(value: unknown): JobType | null {
+  if (value === "fulltime" || value === "parttime" || value === "contract") {
+    return value;
+  }
+
+  return null;
+}
+
+function readStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.map(readString).filter((item) => item.length > 0);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

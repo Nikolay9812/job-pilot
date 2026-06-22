@@ -23,6 +23,28 @@ export type JobListItem = {
   matchScore: number;
 };
 
+export type JobDetails = {
+  id: string;
+  title: string;
+  company: string;
+  salary: string | null;
+  location: string | null;
+  jobType: JobType | null;
+  sourceUrl: string | null;
+  externalApplyUrl: string | null;
+  aboutRole: string | null;
+  responsibilities: string[];
+  requirements: string[];
+  niceToHave: string[];
+  benefits: string[];
+  aboutCompany: string | null;
+  matchScore: number;
+  matchReason: string | null;
+  matchedSkills: string[];
+  missingSkills: string[];
+  foundAt: string;
+};
+
 export type JobsPageInfo = {
   currentPage: number;
   pageSize: number;

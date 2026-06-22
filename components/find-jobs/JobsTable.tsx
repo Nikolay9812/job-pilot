@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AlertCircle, Building2, Search } from "lucide-react";
 import { JobsPagination } from "@/components/find-jobs/JobsPagination";
 import { formatDateFound } from "@/lib/jobs";
@@ -48,13 +49,21 @@ export function JobsTable({ jobs, pageInfo, query, hasError }: JobsTableProps) {
                       <span className="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-surface-secondary shadow-sm">
                         <Building2 className="h-4 w-4 text-text-secondary" aria-hidden="true" />
                       </span>
-                      <span className="text-sm font-semibold leading-5 text-text-primary">
+                      <Link
+                        href={`/find-jobs/${job.id}`}
+                        className="text-sm font-semibold leading-5 text-text-primary transition-colors hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                      >
                         {job.company}
-                      </span>
+                      </Link>
                     </div>
                   </td>
-                  <td className="px-8 py-5 text-sm font-semibold leading-5 text-text-dark">
-                    {job.title}
+                  <td className="px-8 py-5">
+                    <Link
+                      href={`/find-jobs/${job.id}`}
+                      className="text-sm font-semibold leading-5 text-text-dark transition-colors hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                    >
+                      {job.title}
+                    </Link>
                   </td>
                   <td className="px-8 py-5">
                     <div className="flex items-center gap-3">

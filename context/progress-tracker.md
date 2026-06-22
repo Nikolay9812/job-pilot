@@ -6,9 +6,9 @@ Update this file after every completed feature. Any AI agent reading this should
 
 ## Current Status
 
-**Phase:** Phase 3 - Find Jobs Page
-**Last completed:** 11 Filter + Sort + Pagination
-**Next:** 12 Job Details Page - Full UI
+**Phase:** Phase 4 - Job Details Page
+**Last completed:** 12 Job Details Page - Full UI
+**Next:** 13 Company Research Agent
 
 ---
 
@@ -36,7 +36,7 @@ Update this file after every completed feature. Any AI agent reading this should
 
 ### Phase 4 - Job Details Page
 
-- [ ] 12 Job Details Page - Full UI
+- [x] 12 Job Details Page - Full UI
 - [ ] 13 Company Research Agent
 
 ### Phase 5 - Dashboard
@@ -92,6 +92,11 @@ _Add decisions here as they are made during implementation._
 - Feature 11 keeps `/find-jobs` as the authenticated server-rendered data owner. The page normalizes URL search params, scopes every `jobs` query to `user_id`, selects only lightweight list columns, requests an exact count, and passes real rows into presentational list components.
 - Feature 11 uses URL params as the list state contract: `q` for company/title search, `match=high|low` for score filters, `sort=newest|oldest` for date sorts, and `page` for 20-per-page pagination. Default state is omitted from the URL.
 - Feature 11 uses `MATCH_THRESHOLD` for High/Low Match filtering, keeping the strong-match cutoff centralized.
+- Feature 12 adds `/find-jobs/[id]` as an authenticated server-rendered detail page. It awaits Next.js 16 dynamic `params`, scopes the `jobs` query by both `id` and `user_id`, and calls `notFound()` for missing or inaccessible jobs.
+- Feature 12 extends `lib/jobs.ts` and `types/jobs.ts` with detail-row parsing and formatting so React components receive normalized `JobDetails` data instead of raw database rows.
+- Feature 12 keeps company research execution out of scope. The Company Research card renders the empty state and token-styled button shown in the design; the Browserbase/GPT dossier flow remains Feature 13.
+- Feature 12 updates the shared app navbar to match the job details design: text-only nav items, active link via `text-accent`, a user icon, and a sign-out control in the header.
+- Feature 12 links Find Jobs table company/title cells to `/find-jobs/[id]` so saved jobs can be opened through the normal list workflow.
 
 ---
 
@@ -114,3 +119,4 @@ _Add notes here as the build progresses - workarounds, patterns, anything that d
 - Feature 09 Find Jobs Page - Full UI: Replaced the `/find-jobs` placeholder with the mock UI from `context/designs/find-jobs.png`: active app navbar, search controls card, success banner, filter/search bar, six-row jobs table with token-colored match bars, and pagination. Components live in `components/find-jobs`. Verification: `npm.cmd run lint` passed after setting the local shell PATH to include Node; `npm.cmd run build` passed after allowing network access for Google Fonts.
 - Feature 10 Adzuna Job Discovery: Added `lib/utils.ts`, `types/jobs.ts`, `lib/adzuna.ts`, `agent/matcher.ts`, `agent/adzuna.ts`, and `app/api/agent/find/route.ts`; wired `components/find-jobs/SearchControls.tsx` to submit real searches, create runs, call Adzuna, score jobs with GPT-4o, save jobs and logs to InsForge, and fire PostHog search/job events. Verification: `npm.cmd run lint` passed after setting the local shell PATH to include Node; `npm.cmd run build` passed after allowing network access for Google Fonts.
 - Feature 11 Filter + Sort + Pagination: Added real InsForge-backed `/find-jobs` list querying, typed list/query helpers in `lib/jobs.ts` and `types/jobs.ts`, URL-driven filter/search/sort controls, real jobs table rows with empty/error states, 20-per-page pagination links, and automatic list refresh after a successful Adzuna search. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts.
+- Feature 12 Job Details Page - Full UI: Added `/find-jobs/[id]`, `components/job-details/*`, full job detail parsing, real user-scoped InsForge job loading, header/info cards/match reasoning/skills/job description/company research empty state/apply CTA, app navbar sign-out UI, and Find Jobs table links into detail pages. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts.

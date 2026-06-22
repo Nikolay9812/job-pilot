@@ -1,34 +1,37 @@
-# Memory - Feature 11 Filter + Sort + Pagination
+# Memory - Feature 12 Job Details Page Full UI
 
-Last updated: 2026-06-22 06:34 Europe/Berlin
+Last updated: 2026-06-22 06:58 Europe/Berlin
 
 ## What was built
 
-- Feature 11 Filter + Sort + Pagination is complete and verified.
-- Updated `app/find-jobs/page.tsx` so `/find-jobs` authenticates the current user, normalizes URL query params, fetches real `jobs` rows from InsForge, scopes every query to `user_id`, requests an exact count, and renders real list data.
-- Added `lib/jobs.ts` with job list query normalization, 20-per-page pagination helpers, Find Jobs URL builder, job row parsing, date formatting, and match filter labels.
-- Expanded `types/jobs.ts` with list-specific types: job source, match filter, sort, query state, list item, and pagination info.
-- Updated `components/find-jobs/FindJobsFilters.tsx` from static mock controls to URL-driven company/title search, match filter, and sort selects.
-- Updated `components/find-jobs/JobsTable.tsx` from mock rows to real job rows, token-colored segmented score bars, empty states, and load-error state.
-- Updated `components/find-jobs/JobsPagination.tsx` from static buttons to real `next/link` pagination with accurate result counts and disabled previous/next states.
-- Updated `components/find-jobs/SearchControls.tsx` so a successful Adzuna search refreshes the server-rendered list.
+- Feature 12 Job Details Page - Full UI is complete and verified.
+- Added `app/find-jobs/[id]/page.tsx` as an authenticated server-rendered job details route.
+- Added `components/job-details/JobHeader.tsx`, `JobInfo.tsx`, `MatchScore.tsx`, `JobDescription.tsx`, `CompanyResearch.tsx`, and `JobActions.tsx`.
+- Extended `types/jobs.ts` with `JobDetails`.
+- Extended `lib/jobs.ts` with full job detail parsing and `formatJobType()`, reusing existing date formatting.
+- Updated `components/find-jobs/JobsTable.tsx` so company and role cells link to `/find-jobs/[id]`.
+- Updated the shared app navbar in `components/layout/Navbar.tsx` to match `context/designs/job-details.png`: text-only nav, active `Find Jobs` state, user icon, and header sign-out.
+- Added `components/layout/NavbarSignOutButton.tsx`.
 - Updated `context/progress-tracker.md` and `context/ui-registry.md`.
 
 ## Decisions made
 
-- The Find Jobs list state is encoded in URL params: `q` for company/title search, `match=high|low` for score filters, `sort=newest|oldest` for date sorts, and `page` for pagination. Default values are omitted from the URL.
-- `/find-jobs` remains the data owner as a Server Component. Filter, sort, search, and pagination controls only update the URL; they do not fetch directly from the client.
-- Feature 11 selects only lightweight job list columns: `id`, `title`, `company`, `salary`, `source`, `found_at`, and `match_score`.
-- High/Low Match uses the centralized `MATCH_THRESHOLD` from `lib/utils.ts`; no score cutoff is hardcoded in components.
-- Pagination is fixed at 20 jobs per page per the build plan.
-- The broader Source badge remains deferred because the current reference UI and existing registry pattern use Company, Role, Match Score, Salary Est., and Date Found columns.
+- `/find-jobs/[id]` owns auth and data loading as a Server Component.
+- The job details page awaits Next.js 16 async `params`, then loads one `jobs` row scoped by both `id` and `user_id`.
+- Missing or inaccessible jobs call `notFound()`.
+- The page passes normalized `JobDetails` data to presentational components; components do not query InsForge.
+- `external_apply_url` is preferred for View Job Post and Apply Now, falling back to `source_url`.
+- Company research execution remains out of scope for Feature 12. The card shows the empty state and Research Company button only; Feature 13 will wire Browserbase/GPT research and saved dossiers.
+- All new UI uses project tokens only. No raw hex values or built-in Tailwind color classes were introduced in touched UI files.
 
 ## Problems solved
 
-- React 19 lint rejected synchronously mirroring `query.search` into state inside an effect. Fixed by making the text filter input uncontrolled and keyed by current search query, then reading `FormData` on submit.
-- Avoided inline score bar widths by rendering 20 small flex segments with token fill classes.
-- Verified no raw hex values or built-in Tailwind color classes were introduced in touched Find Jobs UI files.
-- `git status` is blocked in this sandbox by Git's safe-directory ownership check, so no git summary was produced and repository config was not changed.
+- Next.js 16 dynamic route params were implemented as a Promise and awaited, matching current official docs.
+- The screenshot required a text-only app navbar with sign-out, so the existing icon-based app navbar was updated to match the design.
+- A JSX lint issue from literal quotes in the Company Research empty state was fixed with entities.
+- `npm.cmd run lint` passes.
+- `npm.cmd run build` passes after allowing network access for Google Fonts.
+- A forbidden-color scan over touched UI files returned no matches.
 
 ## Current state
 
@@ -46,8 +49,9 @@ Last updated: 2026-06-22 06:34 Europe/Berlin
   - `09 Find Jobs Page - Full UI`
   - `10 Adzuna Job Discovery`
   - `11 Filter + Sort + Pagination`
-- Next feature is Phase 4:
-  - `12 Job Details Page - Full UI`
+- Phase 4 Job Details Page has started:
+  - `12 Job Details Page - Full UI` is complete
+  - `13 Company Research Agent` is next
 - Verification:
   - `npm.cmd run lint` passes.
   - `npm.cmd run build` passes after allowing network access for Google Fonts.
@@ -56,9 +60,9 @@ Last updated: 2026-06-22 06:34 Europe/Berlin
 
 - Run `/remember restore`.
 - Read `AGENTS.md` and the required context files in order before implementation.
-- Start Feature 12 Job Details Page - Full UI from `context/build-plan.md`.
-- Feature 12 should load real job data from InsForge for `/find-jobs/[id]`, scoped to the current user, and render the job info and match sections immediately.
-- Keep the Company Research section as an empty state with a Research Company button; the actual company research agent remains Feature 13.
+- Start Feature 13 Company Research Agent from `context/build-plan.md`.
+- Feature 13 should add `POST /api/agent/research`, load the authenticated user's job and profile from InsForge, derive the employer homepage from the Adzuna redirect when possible, run one Browserbase/Stagehand session with max 3 subpages, synthesize the 9-field dossier with GPT-4o, save it to `jobs.company_research`, revalidate the job details page, and fire `company_researched`.
+- The existing Feature 12 Company Research card will need to become wired to the research route and render saved dossiers.
 
 ## Open questions
 
