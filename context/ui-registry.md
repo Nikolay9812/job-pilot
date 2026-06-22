@@ -147,7 +147,7 @@ Find Jobs keeps the full 1440px app canvas from the supplied reference image. Fe
 
 ### Job Details Page Full UI
 
-File: app/find-jobs/[id]/page.tsx, components/job-details/*, components/layout/Navbar.tsx, components/layout/NavbarSignOutButton.tsx
+File: app/find-jobs/[id]/page.tsx, components/job-details/*, components/layout/Navbar.tsx
 Last updated: 2026-06-22
 
 | Property         | Class                                                                                 |
@@ -163,4 +163,24 @@ Last updated: 2026-06-22
 | Accent usage     | Active nav `text-accent`; Research Company/Refresh Research and Apply Now CTAs `bg-accent text-accent-foreground`; disabled research state `bg-accent-light text-accent`; tech pills and accent icon wells `bg-accent-muted text-accent`; bullet dots use `bg-accent`, `bg-success`, or `bg-info-medium`; match badge `bg-success-lightest text-success-foreground` |
 
 **Pattern notes:**
-The job details page mirrors `context/designs/job-details.png` as a centered detail column inside the 1440px app shell. `/find-jobs/[id]` owns authentication and real data loading, while components under `components/job-details` stay presentational except `CompanyResearch`, which is the focused client bridge for `POST /api/agent/research`. The header card uses the same logo-well/card language as Find Jobs, the four info cards use token-tinted icon wells, and match skills use green success pills while gap skills use accent-muted pills per token guidance. Company research keeps the original empty state, adds a loading state with a spinning refresh icon, renders friendly token-colored errors, and displays all nine saved dossier fields after success or reload. The post-research layout uses a compact overview panel, a standalone Tech Stack row of accent-muted pills with code icons, icon-led section headings, and simple bullet rows inside secondary-surface cards. Sources are de-duplicated before rendering so repeated URLs never create duplicate React keys. Existing research shows a `Refresh Research` action that overwrites the saved JSON and then refreshes the server page. The shared app navbar uses text-only nav items, a user icon, and a header sign-out button to match the supplied app-page references.
+The job details page mirrors `context/designs/job-details.png` as a centered detail column inside the 1440px app shell. `/find-jobs/[id]` owns authentication and real data loading, while components under `components/job-details` stay presentational except `CompanyResearch`, which is the focused client bridge for `POST /api/agent/research`. The header card uses the same logo-well/card language as Find Jobs, the four info cards use token-tinted icon wells, and match skills use green success pills while gap skills use accent-muted pills per token guidance. Company research keeps the original empty state, adds a loading state with a spinning refresh icon, renders friendly token-colored errors, and displays all nine saved dossier fields after success or reload. The post-research layout uses a compact overview panel, a standalone Tech Stack row of accent-muted pills with code icons, icon-led section headings, and simple bullet rows inside secondary-surface cards. Sources are de-duplicated before rendering so repeated URLs never create duplicate React keys. Existing research shows a `Refresh Research` action that overwrites the saved JSON and then refreshes the server page. The shared app navbar now follows the dashboard reference with icon-led nav items and an active bottom border.
+
+### Dashboard Page Full UI
+
+File: app/dashboard/page.tsx, components/dashboard/*, components/layout/Navbar.tsx
+Last updated: 2026-06-22
+
+| Property         | Class                                                                                 |
+| ---------------- | ------------------------------------------------------------------------------------- |
+| Background       | Page `bg-background`; cards/header `bg-surface`; trend badges `bg-success-lightest`; activity rings `bg-accent-light`, `bg-info-light`, `bg-success-light` |
+| Border           | Cards `border border-border`; recent activity header `border-b border-border`; app navbar `border-b border-border`; active nav `border-b-2 border-accent`; chart grid lines use `var(--color-border)` |
+| Border radius    | Cards `rounded-xl`; trend badges `rounded-sm`; activity dots `rounded-full`; chart bars `rx="4"` |
+| Text - primary   | Stat values `text-4xl font-semibold leading-10 text-text-primary`; card headings `text-xl font-semibold leading-7 text-text-primary`; activity titles `text-base font-semibold leading-6 text-text-primary` |
+| Text - secondary | Stat labels `text-sm font-semibold leading-5 text-text-secondary`; helpers/timestamps `text-sm font-medium leading-5 text-text-muted`; chart labels `fill-chart-axis text-xs font-medium` |
+| Spacing          | Page wrapper `max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8 gap-6`; cards `p-6`; stats gap `gap-6`; activity list `px-6 py-7`; chart top spacing `mt-8` / `mt-10` |
+| Hover state      | App navbar inactive links `hover:text-text-primary`; no card hover states on dashboard mock charts |
+| Shadow           | Cards `shadow-card` |
+| Accent usage     | Active nav `border-accent text-accent`; Jobs Found line chart `stroke="var(--color-accent)"`; activity dots use `bg-accent`, `bg-info`, and `bg-success-alt`; chart bars use `var(--color-info)` and `var(--color-success)` |
+
+**Pattern notes:**
+Feature 14 replaces the authenticated dashboard placeholder with the mock dashboard from `context/designs/dashboard.png`. `/dashboard` owns auth and page composition only; `components/dashboard` owns presentational mock data for stat cards, recent activity, and token-colored SVG charts. Dashboard cards use the same rounded-xl white surface, border, and shadow language as Find Jobs and Job Details. Charts are inline SVG so no new third-party chart dependency is introduced for the mock phase; real PostHog chart data remains deferred to Feature 17. The shared app navbar was updated to the dashboard reference: each item has a lucide icon, active route uses `border-b-2 border-accent text-accent`, and inactive links use token text colors only.

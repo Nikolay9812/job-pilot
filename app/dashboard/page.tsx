@@ -1,5 +1,9 @@
 import { redirect } from "next/navigation";
 import { PostHogIdentify } from "@/components/auth/PostHogIdentify";
+import { AnalyticsCharts } from "@/components/dashboard/AnalyticsCharts";
+import { CompanyResearchChart } from "@/components/dashboard/CompanyResearchChart";
+import { RecentActivity } from "@/components/dashboard/RecentActivity";
+import { StatsBar } from "@/components/dashboard/StatsBar";
 import { Navbar } from "@/components/layout/Navbar";
 import { createInsforgeServer } from "@/lib/insforge-server";
 
@@ -14,17 +18,14 @@ export default async function DashboardPage() {
   return (
     <main className="min-h-screen bg-background">
       <PostHogIdentify userId={data.user.id} />
-      <Navbar />
-      <section className="mx-auto max-w-[1440px] px-4 py-12 sm:px-6 lg:px-8">
-        <div className="rounded-xl border border-border bg-surface p-6 shadow-card">
-          <p className="text-xs font-medium uppercase leading-4 text-accent">Dashboard</p>
-          <h1 className="mt-3 text-2xl font-semibold leading-8 text-text-primary">
-            You are signed in
-          </h1>
-          <p className="mt-2 text-sm font-normal leading-5 text-text-secondary">
-            Dashboard data arrives in the next foundation phase.
-          </p>
+      <Navbar variant="app" activeHref="/dashboard" />
+      <section className="mx-auto flex max-w-[1440px] flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
+        <StatsBar />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <RecentActivity />
+          <CompanyResearchChart />
         </div>
+        <AnalyticsCharts />
       </section>
     </main>
   );

@@ -1,12 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
-import { CircleUserRound } from "lucide-react";
-import { NavbarSignOutButton } from "@/components/layout/NavbarSignOutButton";
+import { CircleUserRound, LayoutDashboard, Search } from "lucide-react";
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/find-jobs", label: "Find Jobs" },
-  { href: "/profile", label: "Profile" },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/find-jobs", label: "Find Jobs", icon: Search },
+  { href: "/profile", label: "Profile", icon: CircleUserRound },
 ];
 
 type NavbarProps = {
@@ -29,27 +28,26 @@ export function Navbar({ activeHref, variant = "marketing" }: NavbarProps) {
             />
           </Link>
 
-          <div className="flex items-center gap-8">
-            <nav className="flex items-center gap-8">
-              {navItems.map(({ href, label }) => {
-                const isActive = href === activeHref;
+          <nav className="flex h-full items-center gap-4 sm:gap-8">
+            {navItems.map(({ href, label, icon: Icon }) => {
+              const isActive = href === activeHref;
 
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    className={`text-sm font-semibold leading-5 transition-colors ${
-                      isActive ? "text-accent" : "text-text-secondary hover:text-text-primary"
-                    }`}
-                  >
-                    {label}
-                  </Link>
-                );
-              })}
-            </nav>
-            <CircleUserRound className="h-6 w-6 text-text-muted" aria-hidden="true" />
-            <NavbarSignOutButton />
-          </div>
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`flex h-full items-center gap-2 border-b-2 px-1 text-sm font-semibold leading-5 transition-colors ${
+                    isActive
+                      ? "border-accent text-accent"
+                      : "border-transparent text-text-secondary hover:text-text-primary"
+                  }`}
+                >
+                  <Icon className="h-5 w-5" aria-hidden="true" />
+                  <span className="hidden sm:inline">{label}</span>
+                </Link>
+              );
+            })}
+          </nav>
         </div>
       </header>
     );

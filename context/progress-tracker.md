@@ -6,9 +6,9 @@ Update this file after every completed feature. Any AI agent reading this should
 
 ## Current Status
 
-**Phase:** Phase 4 - Job Details Page
-**Last completed:** 13 Company Research Agent
-**Next:** 14 Dashboard Page - Full UI
+**Phase:** Phase 5 - Dashboard
+**Last completed:** 14 Dashboard Page - Full UI
+**Next:** 15 Stats Bar - Real Data
 
 ---
 
@@ -41,7 +41,7 @@ Update this file after every completed feature. Any AI agent reading this should
 
 ### Phase 5 - Dashboard
 
-- [ ] 14 Dashboard Page - Full UI
+- [x] 14 Dashboard Page - Full UI
 - [ ] 15 Stats Bar - Real Data
 - [ ] 16 Recent Activity - Real Data
 - [ ] 17 Analytics Charts - PostHog Data
@@ -101,6 +101,9 @@ _Add decisions here as they are made during implementation._
 - Feature 13 keeps Browserbase and Stagehand server-only behind `lib/browserbase.ts`, `lib/stagehand.ts`, and `agent/research.ts`. The agent resolves Adzuna redirects with native server `fetch`, runs one Browserbase/Stagehand session, extracts the homepage plus up to three internal pages, closes Stagehand in `finally`, and logs thin/failing research to `agent_logs` with `job_id` and nullable `run_id`.
 - Feature 13 synthesizes the exact 9-field `CompanyResearchDossier` with GPT-4o JSON output and normalizes/falls back to job/profile context so a complete dossier is still saved when browser research or synthesis is thin.
 - Feature 13 turns `CompanyResearch` into the focused client action surface for the job details page. Existing saved dossiers render on page load, the button refreshes and overwrites saved research, and all visible styling uses project token classes only.
+- Feature 14 replaces the `/dashboard` placeholder with the full mock dashboard UI from `context/designs/dashboard.png`, using `components/dashboard/*` for stat cards, recent activity, and three token-colored SVG chart cards.
+- Feature 14 keeps dashboard data mocked only. Real InsForge stats, real activity, and PostHog chart data remain deferred to Features 15-17.
+- Feature 14 updates the shared app navbar to match the dashboard reference: nav items include lucide icons, active state uses `border-b-2 border-accent text-accent`, and inactive items remain token-colored text links.
 
 ---
 
@@ -126,3 +129,4 @@ _Add notes here as the build progresses - workarounds, patterns, anything that d
 - Feature 12 Job Details Page - Full UI: Added `/find-jobs/[id]`, `components/job-details/*`, full job detail parsing, real user-scoped InsForge job loading, header/info cards/match reasoning/skills/job description/company research empty state/apply CTA, app navbar sign-out UI, and Find Jobs table links into detail pages. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts.
 - Feature 13 Company Research Agent: Added `@browserbasehq/sdk`, `@browserbasehq/stagehand`, and `zod`; implemented server-only Browserbase/Stagehand helpers, `agent/research.ts`, `POST /api/agent/research`, typed/parsing support for `CompanyResearchDossier`, and the real job-details company research UI with loading/error/refresh states and persisted dossier rendering. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts; touched UI files scanned clean for hardcoded hex values and raw Tailwind color utilities. Note: `npm install` reported 19 advisories (17 low, 2 moderate); no audit fix was applied because it is outside this feature scope.
 - Feature 13 polish: De-duplicated company research sources before rendering and before refreshed fallback saves, preventing duplicate React keys when Adzuna source/apply URLs repeat. Updated the dossier UI with a standalone Tech Stack pill row, token-colored icons before section titles, and cleaner bullet rows matching the supplied screenshot direction. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts; `CompanyResearch.tsx` scanned clean for hardcoded hex values and raw Tailwind color utilities.
+- Feature 14 Dashboard Page - Full UI: Replaced the `/dashboard` placeholder with the screenshot-matched mock dashboard: active app navbar, four stat cards, recent activity timeline, Company Research Activity bar chart, Jobs Found Over Time line/area chart, and Match Score Distribution bar chart. Added `components/dashboard/StatCard.tsx`, `StatsBar.tsx`, `RecentActivity.tsx`, `CompanyResearchChart.tsx`, `JobsFoundChart.tsx`, `MatchScoreChart.tsx`, and `AnalyticsCharts.tsx`. Verification: `npm.cmd run lint` passed after setting the local shell PATH to include Node; `tsc --noEmit` passed; touched dashboard/navbar files scanned clean for hardcoded hex values and raw Tailwind color utilities. `npm.cmd run build` could not be run because the required network escalation for Google Fonts was rejected by the environment usage limit.
