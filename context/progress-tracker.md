@@ -7,8 +7,8 @@ Update this file after every completed feature. Any AI agent reading this should
 ## Current Status
 
 **Phase:** Phase 3 - Find Jobs Page
-**Last completed:** 10 Adzuna Job Discovery
-**Next:** 11 Filter + Sort + Pagination
+**Last completed:** 11 Filter + Sort + Pagination
+**Next:** 12 Job Details Page - Full UI
 
 ---
 
@@ -32,7 +32,7 @@ Update this file after every completed feature. Any AI agent reading this should
 
 - [x] 09 Find Jobs Page - Full UI
 - [x] 10 Adzuna Job Discovery
-- [ ] 11 Filter + Sort + Pagination
+- [x] 11 Filter + Sort + Pagination
 
 ### Phase 4 - Job Details Page
 
@@ -89,6 +89,9 @@ _Add decisions here as they are made during implementation._
 - Feature 10 keeps GPT-4o scoring in `agent/matcher.ts` with JSON normalization. Per-job scoring failures are logged to `agent_logs`, saved with a fallback score of 0, and do not crash the whole run.
 - Feature 10 saves all successfully inserted Adzuna jobs as `source: 'search'`, then fires `job_found` for each saved row and `job_search_started` once per search.
 - Feature 10 turns `SearchControls` into the real client submit bridge with loading, success, and friendly error states. Jobs table, filters, and pagination intentionally remain mock/static until Feature 11.
+- Feature 11 keeps `/find-jobs` as the authenticated server-rendered data owner. The page normalizes URL search params, scopes every `jobs` query to `user_id`, selects only lightweight list columns, requests an exact count, and passes real rows into presentational list components.
+- Feature 11 uses URL params as the list state contract: `q` for company/title search, `match=high|low` for score filters, `sort=newest|oldest` for date sorts, and `page` for 20-per-page pagination. Default state is omitted from the URL.
+- Feature 11 uses `MATCH_THRESHOLD` for High/Low Match filtering, keeping the strong-match cutoff centralized.
 
 ---
 
@@ -110,3 +113,4 @@ _Add notes here as the build progresses - workarounds, patterns, anything that d
 - Feature 08 Resume PDF Generation from Profile: Added `@react-pdf/renderer`, `agent/resume-generator.tsx`, and `app/api/resume/generate/route.ts`; the resume card's Generate Resume from Profile button now calls the route, shows loading/success/error feedback, refreshes profile data, and links to the newly generated PDF. The route loads the authenticated user's complete profile, asks GPT-4o for grounded resume JSON, renders an A4 PDF server-side, uploads it to the private `resumes` bucket at the fixed active key, and updates the profile resume metadata. Verification: `npm.cmd run lint` passed after setting the local shell PATH to include Node; `npm.cmd run build` passed after allowing network access for Google Fonts.
 - Feature 09 Find Jobs Page - Full UI: Replaced the `/find-jobs` placeholder with the mock UI from `context/designs/find-jobs.png`: active app navbar, search controls card, success banner, filter/search bar, six-row jobs table with token-colored match bars, and pagination. Components live in `components/find-jobs`. Verification: `npm.cmd run lint` passed after setting the local shell PATH to include Node; `npm.cmd run build` passed after allowing network access for Google Fonts.
 - Feature 10 Adzuna Job Discovery: Added `lib/utils.ts`, `types/jobs.ts`, `lib/adzuna.ts`, `agent/matcher.ts`, `agent/adzuna.ts`, and `app/api/agent/find/route.ts`; wired `components/find-jobs/SearchControls.tsx` to submit real searches, create runs, call Adzuna, score jobs with GPT-4o, save jobs and logs to InsForge, and fire PostHog search/job events. Verification: `npm.cmd run lint` passed after setting the local shell PATH to include Node; `npm.cmd run build` passed after allowing network access for Google Fonts.
+- Feature 11 Filter + Sort + Pagination: Added real InsForge-backed `/find-jobs` list querying, typed list/query helpers in `lib/jobs.ts` and `types/jobs.ts`, URL-driven filter/search/sort controls, real jobs table rows with empty/error states, 20-per-page pagination links, and automatic list refresh after a successful Adzuna search. Verification: `npm.cmd run lint` passed; `npm.cmd run build` passed after allowing network access for Google Fonts.

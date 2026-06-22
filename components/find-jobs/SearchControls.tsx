@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { AlertCircle, Search, Sparkles } from "lucide-react";
 import type { FindJobsResponse } from "@/types/jobs";
 
@@ -10,6 +11,7 @@ type SearchStatus =
   | { kind: "error"; message: string };
 
 export function SearchControls() {
+  const router = useRouter();
   const [jobTitle, setJobTitle] = useState("");
   const [location, setLocation] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -51,6 +53,8 @@ export function SearchControls() {
         kind: "success",
         message: `Found ${payload.data.jobsFound} ${jobLabel} and saved ${payload.data.strongMatches} ${matchLabel}.`,
       });
+      router.replace("/find-jobs", { scroll: false });
+      router.refresh();
     } catch (error) {
       console.error("[SearchControls]", error);
       setStatus({ kind: "error", message: "We could not find jobs right now. Please try again." });

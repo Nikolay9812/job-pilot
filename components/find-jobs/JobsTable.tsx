@@ -1,67 +1,18 @@
-import { Building2 } from "lucide-react";
+import { AlertCircle, Building2, Search } from "lucide-react";
 import { JobsPagination } from "@/components/find-jobs/JobsPagination";
+import { formatDateFound } from "@/lib/jobs";
+import type { JobListItem, JobListQuery, JobsPageInfo } from "@/types/jobs";
 
-type JobMatch = {
-  company: string;
-  role: string;
-  matchScore: number;
-  scoreWidthClass: string;
-  salary: string;
-  dateFound: string;
+type JobsTableProps = {
+  jobs: JobListItem[];
+  pageInfo: JobsPageInfo;
+  query: JobListQuery;
+  hasError: boolean;
 };
 
-const jobs: JobMatch[] = [
-  {
-    company: "Vercel",
-    role: "Senior Frontend Engineer",
-    matchScore: 94,
-    scoreWidthClass: "w-[94%]",
-    salary: "$160k - $200k",
-    dateFound: "2 hours ago",
-  },
-  {
-    company: "Stripe",
-    role: "Staff UI Engineer",
-    matchScore: 88,
-    scoreWidthClass: "w-[88%]",
-    salary: "$180k - $240k",
-    dateFound: "Yesterday",
-  },
-  {
-    company: "Linear",
-    role: "Product Engineer",
-    matchScore: 96,
-    scoreWidthClass: "w-[96%]",
-    salary: "$150k - $190k",
-    dateFound: "Yesterday",
-  },
-  {
-    company: "Notion",
-    role: "Frontend Developer",
-    matchScore: 72,
-    scoreWidthClass: "w-[72%]",
-    salary: "$130k - $170k",
-    dateFound: "2 days ago",
-  },
-  {
-    company: "OpenAI",
-    role: "Design Engineer",
-    matchScore: 91,
-    scoreWidthClass: "w-[91%]",
-    salary: "$200k - $280k",
-    dateFound: "3 days ago",
-  },
-  {
-    company: "Figma",
-    role: "Software Engineer, Editor",
-    matchScore: 85,
-    scoreWidthClass: "w-[85%]",
-    salary: "$170k - $220k",
-    dateFound: "4 days ago",
-  },
-];
+const scoreSegments = Array.from({ length: 20 }, (_value, index) => index);
 
-export function JobsTable() {
+export function JobsTable({ jobs, pageInfo, query, hasError }: JobsTableProps) {
   return (
     <section className="overflow-hidden rounded-xl border border-border bg-surface shadow-card">
       <div className="overflow-x-auto">
@@ -86,60 +37,107 @@ export function JobsTable() {
             </tr>
           </thead>
           <tbody>
-            {jobs.map((job) => (
-              <tr
-                key={`${job.company}-${job.role}`}
-                className="border-b border-border transition-colors last:border-b-0 hover:bg-surface-secondary"
-              >
-                <td className="px-12 py-5">
-                  <div className="flex items-center gap-4">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-surface-secondary shadow-sm">
-                      <Building2 className="h-4 w-4 text-text-secondary" aria-hidden="true" />
-                    </span>
-                    <span className="text-sm font-semibold leading-5 text-text-primary">
-                      {job.company}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-8 py-5 text-sm font-semibold leading-5 text-text-dark">
-                  {job.role}
-                </td>
-                <td className="px-8 py-5">
-                  <div className="flex items-center gap-3">
-                    <span className="h-1 w-28 rounded-full bg-border-light">
-                      <span
-                        className={`block h-full rounded-full ${job.scoreWidthClass} ${scoreFillClass(job.matchScore)}`}
-                      />
-                    </span>
-                    <span className="text-sm font-semibold leading-5 text-text-dark">
-                      {job.matchScore}%
-                    </span>
-                  </div>
-                </td>
-                <td className="px-8 py-5 text-sm font-medium leading-5 text-text-dark">
-                  {job.salary}
-                </td>
-                <td className="px-8 py-5 text-sm font-medium leading-5 text-text-secondary">
-                  {job.dateFound}
+            {jobs.length > 0 ? (
+              jobs.map((job) => (
+                <tr
+                  key={job.id}
+                  className="border-b border-border transition-colors last:border-b-0 hover:bg-surface-secondary"
+                >
+                  <td className="px-12 py-5">
+                    <div className="flex items-center gap-4">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-surface-secondary shadow-sm">
+                        <Building2 className="h-4 w-4 text-text-secondary" aria-hidden="true" />
+                      </span>
+                      <span className="text-sm font-semibold leading-5 text-text-primary">
+                        {job.company}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-8 py-5 text-sm font-semibold leading-5 text-text-dark">
+                    {job.title}
+                  </td>
+                  <td className="px-8 py-5">
+                    <div className="flex items-center gap-3">
+                      {renderScoreBar(job.matchScore)}
+                      <span className="text-sm font-semibold leading-5 text-text-dark">
+                        {job.matchScore}%
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-8 py-5 text-sm font-medium leading-5 text-text-dark">
+                    {job.salary ?? "Not listed"}
+                  </td>
+                  <td className="px-8 py-5 text-sm font-medium leading-5 text-text-secondary">
+                    {formatDateFound(job.foundAt)}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={5} className="px-8 py-14">
+                  {renderJobsEmptyState(hasError, hasActiveFilters(query))}
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
-      <JobsPagination />
+      <JobsPagination pageInfo={pageInfo} query={query} />
     </section>
   );
 }
 
 function scoreFillClass(score: number): string {
-  if (score >= 90) {
+  if (score >= 80) {
     return "bg-success";
   }
 
-  if (score >= 80) {
+  if (score >= 60) {
     return "bg-info-medium";
   }
 
   return "bg-warning";
+}
+
+function renderScoreBar(score: number) {
+  const filledSegments = Math.round(Math.max(0, Math.min(100, score)) / 5);
+
+  return (
+    <span className="flex h-1 w-28 overflow-hidden rounded-full bg-border-light">
+      {scoreSegments.map((segment) => (
+        <span
+          key={segment}
+          className={`h-full flex-1 ${segment < filledSegments ? scoreFillClass(score) : ""}`}
+        />
+      ))}
+    </span>
+  );
+}
+
+function renderJobsEmptyState(hasError: boolean, hasActiveFilters: boolean) {
+  if (hasError) {
+    return (
+      <div className="flex flex-col items-center gap-3 text-center">
+        <AlertCircle className="h-6 w-6 text-error" aria-hidden="true" />
+        <p className="text-sm font-medium leading-5 text-text-secondary">
+          We could not load saved jobs right now. Please refresh and try again.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-center gap-3 text-center">
+      <Search className="h-6 w-6 text-text-muted" aria-hidden="true" />
+      <p className="text-sm font-medium leading-5 text-text-secondary">
+        {hasActiveFilters
+          ? "No jobs match these filters. Try adjusting your search or match filter."
+          : "No saved jobs yet. Run a search above to start your list."}
+      </p>
+    </div>
+  );
+}
+
+function hasActiveFilters(query: JobListQuery): boolean {
+  return query.search.length > 0 || query.matchFilter !== "all";
 }
